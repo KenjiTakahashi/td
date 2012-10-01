@@ -50,7 +50,7 @@ class Model(UserList):
     def add(self, name, priority=3, comment="", parent=""):
         """Adds new item to the model.
 
-        Name argument may contain (refs:) syntax, which will be
+        Name argument may contain (ref:) syntax, which will be
         stripped down as needed.
 
         :parent: should have a form "<itemref>.<subitemref...>" (e.g. "1.1").
@@ -75,7 +75,7 @@ class Model(UserList):
     def remove(self, index):
         """Removes specified item from the model.
 
-        :index: Should be in form "<itemref>.<subitemref...>" (e.g. "1.1").
+        :index: Should have a form "<itemref>.<subitemref...>" (e.g. "1.1").
 
         :index: Item's index.
 
@@ -88,12 +88,42 @@ class Model(UserList):
                 pass
             else:
                 if j + 1 == len(index):
-                    del data[i]
+                    try:
+                        del data[i]
+                    except IndexError:
+                        pass  # logger
                 else:
                     data = data[i][4]
+
+
+class View(object):
+    """Docstring for View """
+
+    def __init__(self, model):
+        """Creates new View instance.
+
+        :model: Model instance.
+        """
+        self._model = model
+
+    def show(self, opts):
+        """Displays a list of model's items and exits.
+
+        :opts: Additional options to customize view.
+
+        """
+        def _show(submodel, offset):
+            for name, priority, comment, done, subitems in submodel:
+                print(" " * offset, name)
+                _show(subitems, offset + 4)
+        _show(self._model, 0)
 
 
 def run():
     """@todo: Docstring for run """
     model = Model()
     model.load()
+    model.add("testname")
+    model.add("testname2", parent="1")
+    view = View(model)
+    view.show(None)

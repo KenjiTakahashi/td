@@ -27,14 +27,14 @@ class ModelTest(object):
 class TestAdd(ModelTest):
     def test_add_top_level_item(self):
         self.model.add("testname")
-        assert self.model == [("testname", 3, "", False, [])]
+        assert self.model == [["testname", 3, "", False, []]]
 
     def test_add_second_level_item(self):
         self.model.add("testname")
         self.model.add("testname2", parent="1")
-        assert self.model == [("testname", 3, "", False, [
-            ("testname2", 3, "", False, [])
-        ])]
+        assert self.model == [["testname", 3, "", False, [
+            ["testname2", 3, "", False, []]
+        ]]]
 
 
 class TestRemove(ModelTest):
@@ -48,4 +48,41 @@ class TestRemove(ModelTest):
         self.model.add("testname")
         self.model.add("testname2", parent="1")
         self.model.remove("1.1")
-        assert self.model == [("testname", 3, "", False, [])]
+        assert self.model == [["testname", 3, "", False, []]]
+
+
+class TestModify(ModelTest):
+    def setUp(self):
+        super(TestModify, self).setUp()
+        self.model.add("testname")
+
+    def test_modify_name(self):
+        self.model.modify("1", name="testname2")
+        assert self.model == [["testname2", 3, "", False, []]]
+
+    def test_modify_priority(self):
+        self.model.modify("1", priority=4)
+        assert self.model == [["testname", 4, "", False, []]]
+
+    def test_modify_comment(self):
+        self.model.modify("1", comment="testcomment")
+        assert self.model == [["testname", 3, "testcomment", False, []]]
+
+    def test_reparent(self):
+        self.model.add("testname2", parent="1")
+        self.model.add("testname3", parent="1.1")
+        self.model.modify("1.1.1", parent="1")
+        assert self.model == [["testname", 3, "", False, [
+            ["testname2", 3, "", False, []], ["testname3", 3, "", False, []]
+        ]]]
+
+    def test_reparent_to_top_level(self):
+        self.model.add("testname2", parent="1")
+        self.model.add("testname3", parent="1.1")
+        self.model.modify("1.1.1", parent=-1)
+        assert self.model == [
+            ["testname", 3, "", False, [
+                ["testname2", 3, "", False, []]
+            ]],
+            ["testname3", 3, "", False, []]
+        ]

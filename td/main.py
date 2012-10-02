@@ -61,16 +61,53 @@ class Model(UserList):
         :parent: Item's parent ("" for top-level item).
 
         """
-        item = (name, priority, comment, False, [])
+        item = [name, priority, comment, False, []]
         data = self.data
-        for c in parent:
-            try:
-                i = int(c) - 1
-            except ValueError:
-                pass
-            else:
-                data = data[i][4]
+        for c in self._split(parent):
+            data = data[int(c) - 1][4]
         data.append(item)
+
+    def modify(
+        self, index, name=None, priority=None, comment=None, parent=None
+    ):
+        """Modifies :index: to specified data.
+
+        Every argument, which is not None, will get changed.
+        If parent is not None, the item will get reparented.
+        Use parent=-1 for reparenting to top-level.
+
+        :index: Index of the item to modify.
+        :name: New name.
+        :priority: New priority.
+        :comment: New comment.
+        :parent: New parent.
+
+        """
+        item = self.data
+        index = self._split(index)
+        for j, c in enumerate(index):
+            item = item[int(c) - 1]
+            if j + 1 != len(index):
+                item = item[4]
+        if name is not None:
+            item[0] = name
+        if priority is not None:
+            item[1] = priority
+        if comment is not None:
+            item[2] = comment
+        if parent is not None:
+            if parent == -1:
+                self.append(item)
+            else:
+                parentitem = self.data
+                for c in self._split(parent):
+                    parentitem = parentitem[int(c) - 1]
+                parentitem[4].append(item)
+            parent = index[:-1]
+            parentitem = self.data
+            for c in parent:
+                parentitem = parentitem[int(c) - 1][4]
+            parentitem.remove(item)
 
     def remove(self, index):
         """Removes specified item from the model.
@@ -81,19 +118,28 @@ class Model(UserList):
 
         """
         data = self.data
+        index = self._split(index)
         for j, c in enumerate(index):
-            try:
-                i = int(c) - 1
-            except ValueError:
-                pass
+            i = int(c) - 1
+            if j + 1 == len(index):
+                try:
+                    del data[i]
+                except IndexError:
+                    pass  # logger
             else:
-                if j + 1 == len(index):
-                    try:
-                        del data[i]
-                    except IndexError:
-                        pass  # logger
-                else:
-                    data = data[i][4]
+                data = data[i][4]
+
+    def _split(self, index):
+        """Splits :index: by '.', removing empty strings.
+
+        :index: Index to split.
+        :returns: :index: split by '.' or empty list, if there are no items.
+
+        """
+        split = index.split('.')
+        if split == ['']:
+            return []
+        return split
 
 
 class View(object):
@@ -125,5 +171,6 @@ def run():
     model.load()
     model.add("testname")
     model.add("testname2", parent="1")
+    model.add("testname3", parent="1.1")
     view = View(model)
     view.show(None)

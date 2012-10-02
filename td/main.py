@@ -18,6 +18,7 @@
 
 import os
 import json
+import sys
 from collections import UserList
 from argparse import ArgumentParser
 
@@ -172,22 +173,34 @@ class View(object):
 class Arg(object):
     """Docstring for Arg """
 
-    def __init__(self):
+    def __init__(self, view):
         """Creates new Arg instance.
 
         Defines all necessary command line arguments, sub-parsers, etc.
 
+        :view: View instance.
+
         """
+        self._view = view
         self.arg = ArgumentParser(description="A non-offensive ToDo manager.")
         self.arg.add_argument(
             '-v', '--version', action='version', version=__version__
         )
-        subparsers = self.arg.add_subparsers()
-        add = subparsers.add_parser('a', aliases=['add'], help="ah")
-        rm = subparsers.add_parser('r', aliases=['rm'], help="rh")
-        done = subparsers.add_parser('d', aliases=['done'], help="dh")
-        edit = subparsers.add_parser('e', aliases=['edit'], help="eh")
-        self.arg.parse_args()
+        subparsers = self.arg.add_subparsers(title="available commands")
+        add = subparsers.add_parser('a', aliases=['add'], help="add new item")
+        edit = subparsers.add_parser('e', aliases=['edit'],
+            help="edit existing item (also used for reparenting)"
+        )
+        rm = subparsers.add_parser('r', aliases=['rm'],
+            help="remove existing item"
+        )
+        done = subparsers.add_parser('d', aliases=['done'],
+            help="mark item as done"
+        )
+        undone = subparsers.add_parser('D', aliases=['undone'],
+            help='mark item as not done'
+        )
+        args = self.arg.parse_args()
 
 
 def run():
@@ -197,6 +210,8 @@ def run():
     model.add("testname")
     model.add("testname2", parent="1")
     model.add("testname3", parent="1.1")
-    #view = View(model)
-    #view.show(None)
-    Arg()
+    view = View(model)
+    if len(sys.argv) > 1:
+        Arg(view)
+    else:
+        view.show(None)

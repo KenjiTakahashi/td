@@ -17,11 +17,12 @@
 
 
 from setuptools import setup
+from td.main import __version__
 
 
 setup(
     name='td',
-    version='0.1',
+    version=__version__,
     description='A per-project todo lists manager.',
     long_description=open('README.md').read(),
     author='Karol "Kenji Takahashi" Woźniak',
@@ -29,6 +30,7 @@ setup(
     license='GPL3',
     url='http://github.com/KenjiTakahashi/td',
     packages=[
+        'td'
     ],
     scripts=['scripts/td'],
     classifiers=[f.strip() for f in """

@@ -1,4 +1,3 @@
-#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 # This is a part of td @ http://github.com/KenjiTakahashi/td
 # Karol "Kenji Takahashi" Woźniak © 2012
@@ -20,6 +19,10 @@
 import os
 import json
 from collections import UserList
+from argparse import ArgumentParser
+
+
+__version__ = '0.1'
 
 
 class Model(UserList):
@@ -149,13 +152,14 @@ class View(object):
         """Creates new View instance.
 
         :model: Model instance.
+
         """
         self._model = model
 
     def show(self, opts):
         """Displays a list of model's items and exits.
 
-        :opts: Additional options to customize view.
+        :opts: Additional options to customize the view.
 
         """
         def _show(submodel, offset):
@@ -165,6 +169,21 @@ class View(object):
         _show(self._model, 0)
 
 
+class Arg(ArgumentParser):
+    """Docstring for Arg """
+
+    def __init__(self):
+        """Creates new Arg instance.
+
+        Defines all necessary command line arguments, sub-parsers, etc.
+
+        """
+        super(Arg, self).__init__(description="A non-offensive ToDo manager.")
+        self.add_argument(
+            '-v', '--version', action='version', version=__version__
+        )
+
+
 def run():
     """@todo: Docstring for run """
     model = Model()
@@ -172,5 +191,7 @@ def run():
     model.add("testname")
     model.add("testname2", parent="1")
     model.add("testname3", parent="1.1")
-    view = View(model)
-    view.show(None)
+    #view = View(model)
+    #view.show(None)
+    arg = Arg()
+    args = arg.parse_args()

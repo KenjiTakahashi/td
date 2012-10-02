@@ -169,7 +169,7 @@ class View(object):
         _show(self._model, 0)
 
 
-class Arg(ArgumentParser):
+class Arg(object):
     """Docstring for Arg """
 
     def __init__(self):
@@ -178,10 +178,16 @@ class Arg(ArgumentParser):
         Defines all necessary command line arguments, sub-parsers, etc.
 
         """
-        super(Arg, self).__init__(description="A non-offensive ToDo manager.")
-        self.add_argument(
+        self.arg = ArgumentParser(description="A non-offensive ToDo manager.")
+        self.arg.add_argument(
             '-v', '--version', action='version', version=__version__
         )
+        subparsers = self.arg.add_subparsers()
+        add = subparsers.add_parser('a', aliases=['add'], help="ah")
+        rm = subparsers.add_parser('r', aliases=['rm'], help="rh")
+        done = subparsers.add_parser('d', aliases=['done'], help="dh")
+        edit = subparsers.add_parser('e', aliases=['edit'], help="eh")
+        self.arg.parse_args()
 
 
 def run():
@@ -193,5 +199,4 @@ def run():
     model.add("testname3", parent="1.1")
     #view = View(model)
     #view.show(None)
-    arg = Arg()
-    args = arg.parse_args()
+    Arg()

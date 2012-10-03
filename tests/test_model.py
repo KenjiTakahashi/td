@@ -86,3 +86,21 @@ class TestModify(ModelTest):
             ]],
             ["testname3", 3, "", False, []]
         ]
+
+
+class TestExists(ModelTest):
+    def test_existing_top_level_index(self):
+        self.model.add("testname")
+        assert self.model.exists("1")
+
+    def test_existing_second_level_index(self):
+        self.model.add("testname")
+        self.model.add("testname2", parent="1")
+        assert self.model.exists("1.1")
+
+    def test_non_existing_top_level_index(self):
+        assert not self.model.exists("1")
+
+    def test_non_existing_second_level_index(self):
+        self.model.add("testname")
+        assert not self.model.exists("1.1")

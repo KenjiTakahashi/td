@@ -72,7 +72,8 @@ class Model(UserList):
         data.append(item)
 
     def modify(
-        self, index, name=None, priority=None, comment=None, parent=None
+        self, index, name=None, priority=None,
+        comment=None, done=None, parent=None
     ):
         """Modifies :index: to specified data.
 
@@ -84,6 +85,7 @@ class Model(UserList):
         :name: New name.
         :priority: New priority.
         :comment: New comment.
+        :done: Done mark.
         :parent: New parent.
 
         """
@@ -99,6 +101,8 @@ class Model(UserList):
             item[1] = priority
         if comment is not None:
             item[2] = comment
+        if done is not None:
+            item[3] = done
         if parent is not None:
             if parent == -1:
                 self.append(item)
@@ -132,6 +136,22 @@ class Model(UserList):
                     pass  # logger
             else:
                 data = data[i][4]
+
+    def exists(self, index):
+        """Checks whether :index: exists in the Model.
+
+        :index: Index to look for.
+        :returns: True if :index: exists in the Model, False otherwise.
+
+        """
+        data = self.data
+        try:
+            for c in self._split(index):
+                i = int(c) - 1
+                data = data[i][4]
+        except:
+            return False
+        return True
 
     def _split(self, index):
         """Splits :index: by '.', removing empty strings.
@@ -173,15 +193,15 @@ class View(object):
 class Arg(object):
     """Docstring for Arg """
 
-    def __init__(self, view):
+    def __init__(self, model):
         """Creates new Arg instance.
 
         Defines all necessary command line arguments, sub-parsers, etc.
 
-        :view: View instance.
+        :model: Model instance.
 
         """
-        self._view = view
+        self.model = model
         self.arg = ArgumentParser(description="A non-offensive ToDo manager.")
         self.arg.add_argument(
             '-v', '--version', action='version', version=__version__
@@ -198,6 +218,7 @@ class Arg(object):
         edit = subparsers.add_parser('e', aliases=['edit'],
             help="edit existing item (also used for reparenting)"
         )
+        edit.add_argument('index', help="index of the item to edit")
         edit.add_argument('--parent', help="new parent index")
         edit.add_argument('-n', '--name', help="new name")
         edit.add_argument('-p', '--priority', type=int, help="new priority")
@@ -207,14 +228,17 @@ class Arg(object):
             help="remove existing item"
         )
         rm.add_argument('index', help="index of the item to remove")
+        rm.set_defaults(func=self.rm)
         done = subparsers.add_parser('d', aliases=['done'],
             help="mark item as done"
         )
         done.add_argument('index', help="index of the item to mark")
+        done.set_defaults(func=self.done)
         undone = subparsers.add_parser('D', aliases=['undone'],
             help='mark item as not done'
         )
         undone.add_argument('index', help="index of the item to unmark")
+        undone.set_defaults(func=self.undone)
         args = self.arg.parse_args()
         args.func(args)
 
@@ -222,6 +246,57 @@ class Arg(object):
         """Handles the 'a' command.
 
         :args: Arguments supplied to the 'a' command.
+
+        """
+        kwargs = self.get_kwargs(args)
+        if kwargs:
+            self.model.add(**kwargs)
+
+    def edit(self, args):
+        """Handles the 'e' command.
+
+        :args: Arguments supplied to the 'e' command.
+
+        """
+        if self.model.exists(args.index):
+            kwargs = self.get_kwargs(args)
+            if kwargs:
+                self.model.edit(args.index, **kwargs)
+
+    def rm(self, args):
+        """Handles the 'r' command.
+
+        :args: Arguments supplied to the 'r' command.
+
+        """
+        if self.model.exists(args.index):
+            self.model.rm(args.index)
+
+    def done(self, args):
+        """Handles the 'd' command.
+
+        :args: Arguments supplied to the 'd' command.
+
+        """
+        if self.model.exists(args.index):
+            self.model.modify(args.index, done=True)
+
+    def undone(self, args):
+        """Handles the 'D' command.
+
+        :args: Arguments supplied to the 'D' command.
+
+        """
+        if self.model.exists(args.index):
+            self.model.modify(args.index, done=False)
+
+    def get_kwargs(self, args, values={}):
+        """Gets necessary data from stdin.
+
+        @note: Also displays error message when no item name is set.
+
+        :args: Arguments supplited with command line.
+        :returns: A dictionary containing data gathered from stdin.
 
         """
         name = args.name or self.get('name')
@@ -235,17 +310,10 @@ class Arg(object):
                 fvalue = getattr(args, field) or self.get(field)
                 if field:
                     kwargs[field] = fvalue
-            self._view.model.add(**kwargs)
+            return kwargs
         else:
             print("Item must have a name!")
-
-    def edit(self, args):
-        """Handles the 'e' command.
-
-        :args: Arguments supplied to the 'e' command.
-
-        """
-        pass
+            return None
 
     def get(self, field):
         """Gets :field: value from stdin.
@@ -277,8 +345,8 @@ def run():
     model.add("testname")
     model.add("testname2", parent="1")
     model.add("testname3", parent="1.1")
-    view = View(model)
     if len(sys.argv) > 1:
-        Arg(view)
+        Arg(model)
     else:
+        view = View(model)
         view.show(None)

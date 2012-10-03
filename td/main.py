@@ -155,7 +155,7 @@ class View(object):
         :model: Model instance.
 
         """
-        self._model = model
+        self.model = model
 
     def show(self, opts):
         """Displays a list of model's items and exits.
@@ -167,7 +167,7 @@ class View(object):
             for name, priority, comment, done, subitems in submodel:
                 print(" " * offset, name)
                 _show(subitems, offset + 4)
-        _show(self._model, 0)
+        _show(self.model, 0)
 
 
 class Arg(object):
@@ -188,19 +188,86 @@ class Arg(object):
         )
         subparsers = self.arg.add_subparsers(title="available commands")
         add = subparsers.add_parser('a', aliases=['add'], help="add new item")
+        add.add_argument('--parent',
+            help="parent index (omit to add top-level item)"
+        )
+        add.add_argument('-n', '--name')
+        add.add_argument('-p', '--priority', type=int)
+        add.add_argument('-c', '--comment')
+        add.set_defaults(func=self.add)
         edit = subparsers.add_parser('e', aliases=['edit'],
             help="edit existing item (also used for reparenting)"
         )
+        edit.add_argument('--parent', help="new parent index")
+        edit.add_argument('-n', '--name', help="new name")
+        edit.add_argument('-p', '--priority', type=int, help="new priority")
+        edit.add_argument('-c', '--comment', help="new comment")
+        edit.set_defaults(func=self.edit)
         rm = subparsers.add_parser('r', aliases=['rm'],
             help="remove existing item"
         )
+        rm.add_argument('index', help="index of the item to remove")
         done = subparsers.add_parser('d', aliases=['done'],
             help="mark item as done"
         )
+        done.add_argument('index', help="index of the item to mark")
         undone = subparsers.add_parser('D', aliases=['undone'],
             help='mark item as not done'
         )
+        undone.add_argument('index', help="index of the item to unmark")
         args = self.arg.parse_args()
+        args.func(args)
+
+    def add(self, args):
+        """Handles the 'a' command.
+
+        :args: Arguments supplied to the 'a' command.
+
+        """
+        name = args.name or self.get('name')
+        if name:
+            kwargs = dict()
+            kwargs['name'] = name
+            priority = args.priority or self.get_priority()
+            if priority:
+                kwargs['priority'] = priority
+            for field in ['comment', 'parent']:
+                fvalue = getattr(args, field) or self.get(field)
+                if field:
+                    kwargs[field] = fvalue
+            self._view.model.add(**kwargs)
+        else:
+            print("Item must have a name!")
+
+    def edit(self, args):
+        """Handles the 'e' command.
+
+        :args: Arguments supplied to the 'e' command.
+
+        """
+        pass
+
+    def get(self, field):
+        """Gets :field: value from stdin.
+
+        :field: Field's name.
+        :returns: Value got from stdin.
+
+        """
+        return input("{0}> ".format(field))
+
+    def get_priority(self):
+        """Gets priority value from stdin.
+
+        @note: It parses value to integer and returns None if it fails.
+
+        :returns: Priority value got from stdin or None.
+
+        """
+        try:
+            return int(self.get('priority'))
+        except ValueError:
+            return None
 
 
 def run():

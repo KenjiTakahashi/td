@@ -104,3 +104,16 @@ class TestExists(ModelTest):
     def test_non_existing_second_level_index(self):
         self.model.add("testname")
         assert not self.model.exists("1.1")
+
+
+class TestGet(ModelTest):
+    def setUp(self):
+        super(TestGet, self).setUp()
+        self.model.add("testname")
+
+    def test_get_top_level_item(self):
+        assert self.model.get("1") == ["", "testname", 3, "", False, []]
+
+    def test_get_second_level_item(self):
+        self.model.add("testname2", parent="1")
+        assert self.model.get("1.1") == ["1", "testname2", 3, "", False, []]

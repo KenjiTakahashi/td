@@ -19,6 +19,7 @@
 import os
 import json
 import sys
+import readline
 from collections import UserList
 from argparse import ArgumentParser
 
@@ -79,7 +80,7 @@ class Model(UserList):
 
         Every argument, which is not None, will get changed.
         If parent is not None, the item will get reparented.
-        Use parent=-1 for reparenting to top-level.
+        Use parent=-1 or parent='' for reparenting to top-level.
 
         :index: Index of the item to modify.
         :name: New name.
@@ -104,7 +105,7 @@ class Model(UserList):
         if done is not None:
             item[3] = done
         if parent is not None:
-            if parent == -1:
+            if parent == -1 or parent == '':
                 self.append(item)
             else:
                 parentitem = self.data
@@ -152,6 +153,20 @@ class Model(UserList):
         except:
             return False
         return True
+
+    def get(self, index):
+        """Gets data values for specified :index:.
+
+        :index: Index for which to get data.
+        :returns: A list in form [parent, name, priority, comment, done].
+
+        """
+        data = self.data
+        index2 = self._split(index)
+        for c in index2[:-1]:
+            i = int(c) - 1
+            data = data[i][4]
+        return [index[:-2] or ""] + data[int(index[-1]) - 1]
 
     def _split(self, index):
         """Splits :index: by '.', removing empty strings.
@@ -259,9 +274,13 @@ class Arg(object):
 
         """
         if self.model.exists(args.index):
-            kwargs = self.get_kwargs(args)
+            values = dict(zip(
+                ['parent', 'name', 'priority', 'comment', 'done'],
+                self.model.get(args.index)
+            ))
+            kwargs = self.get_kwargs(args, values)
             if kwargs:
-                self.model.edit(args.index, **kwargs)
+                self.model.modify(args.index, **kwargs)
 
     def rm(self, args):
         """Handles the 'r' command.
@@ -296,18 +315,17 @@ class Arg(object):
         @note: Also displays error message when no item name is set.
 
         :args: Arguments supplited with command line.
+        :values: Default values dictionary, supplied for editing.
         :returns: A dictionary containing data gathered from stdin.
 
         """
-        name = args.name or self.get('name')
+        name = args.name or self.get('name', values.get('name'))
         if name:
             kwargs = dict()
             kwargs['name'] = name
-            priority = args.priority or self.get_priority()
-            if priority:
-                kwargs['priority'] = priority
-            for field in ['comment', 'parent']:
-                fvalue = getattr(args, field) or self.get(field)
+            for field in ['priority', 'comment', 'parent']:
+                value = values.get(field)
+                fvalue = getattr(args, field) or self.get(field, value)
                 if field:
                     kwargs[field] = fvalue
             return kwargs
@@ -315,31 +333,26 @@ class Arg(object):
             print("Item must have a name!")
             return None
 
-    def get(self, field):
+    def get(self, field, value=None):
         """Gets :field: value from stdin.
 
         :field: Field's name.
+        :value: Default value for editing.
         :returns: Value got from stdin.
 
         """
-        return input("{0}> ".format(field))
-
-    def get_priority(self):
-        """Gets priority value from stdin.
-
-        @note: It parses value to integer and returns None if it fails.
-
-        :returns: Priority value got from stdin or None.
-
-        """
-        try:
-            return int(self.get('priority'))
-        except ValueError:
-            return None
+        readline.set_startup_hook(lambda: readline.insert_text(str(value)))
+        value = input("{0}> ".format(field))
+        readline.set_startup_hook()
+        if field == 'priority':
+            try:
+                return int(value)
+            except ValueError:
+                return None
+        return value
 
 
 def run():
-    """@todo: Docstring for run """
     model = Model()
     model.load()
     model.add("testname")

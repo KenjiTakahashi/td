@@ -27,31 +27,38 @@ from argparse import ArgumentParser
 __version__ = '0.1'
 
 
-class Model(UserList):
-    """Docstring for Model """
-
-    def load(self, filename=os.getcwd()):
-        """Loads data from the specified permanent location.
-        If no location is set, it defaults to current working dir.
-
-        :filename: File location.
-
-        """
-        self._filename = filename
+def load(func):
+    """@decorator: Loads data before executing :func:."""
+    def aux(self, *args, **kwargs):
+        path = os.getcwd()  # FIXME
         try:
-            data = json.loads(open(os.path.join(self._filename, '.td')).read())
+            data = json.loads(open(os.path.join(path, '.td')).read())
         except IOError:
             self.refs = dict()
         else:
-            self.extend(data['items'])
+            self[:] = data['items']
             self.refs = data['refs']
+        return func(self, *args, **kwargs)
+    return aux
 
-    def save(self):
-        """Saves model data to permanent storage."""
-        open(self._filename, 'w').write(
+
+def save(func):
+    """@decorator: Saves data after executing :func:."""
+    def aux(self, *args, **kwargs):
+        out = func(self, *args, **kwargs)
+        path = os.getcwd()  # FIXME
+        open(os.path.join(path, '.td'), 'w').write(
             json.dumps({'items': self.data, 'refs': self.refs})
         )
+        return out
+    return aux
 
+
+class Model(UserList):
+    """Docstring for Model """
+
+    @save
+    @load
     def add(self, name, priority=3, comment="", parent=""):
         """Adds new item to the model.
 
@@ -72,6 +79,8 @@ class Model(UserList):
             data = data[int(c) - 1][4]
         data.append(item)
 
+    @save
+    @load
     def modify(
         self, index, name=None, priority=None,
         comment=None, done=None, parent=None
@@ -118,6 +127,8 @@ class Model(UserList):
                 parentitem = parentitem[int(c) - 1][4]
             parentitem.remove(item)
 
+    @save
+    @load
     def remove(self, index):
         """Removes specified item from the model.
 
@@ -138,6 +149,7 @@ class Model(UserList):
             else:
                 data = data[i][4]
 
+    @load
     def exists(self, index):
         """Checks whether :index: exists in the Model.
 
@@ -154,11 +166,13 @@ class Model(UserList):
             return False
         return True
 
+    @load
     def get(self, index):
         """Gets data values for specified :index:.
 
         :index: Index for which to get data.
-        :returns: A list in form [parent, name, priority, comment, done].
+        :returns: A list in form
+        [parent, name, priority, comment, done, children].
 
         """
         data = self.data
@@ -167,6 +181,15 @@ class Model(UserList):
             i = int(c) - 1
             data = data[i][4]
         return [index[:-2] or ""] + data[int(index[-1]) - 1]
+
+    @load
+    def __iter__(self):
+        """@todo: Docstring for __iter__
+
+        :returns: @todo
+
+        """
+        return super(Model, self).__iter__()
 
     def _split(self, index):
         """Splits :index: by '.', removing empty strings.
@@ -341,7 +364,9 @@ class Arg(object):
         :returns: Value got from stdin.
 
         """
-        readline.set_startup_hook(lambda: readline.insert_text(str(value)))
+        readline.set_startup_hook(lambda: readline.insert_text(
+            value is not None and str(value) or ""
+        ))
         value = input("{0}> ".format(field))
         readline.set_startup_hook()
         if field == 'priority':
@@ -354,10 +379,6 @@ class Arg(object):
 
 def run():
     model = Model()
-    model.load()
-    model.add("testname")
-    model.add("testname2", parent="1")
-    model.add("testname3", parent="1.1")
     if len(sys.argv) > 1:
         Arg(model)
     else:

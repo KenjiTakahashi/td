@@ -16,12 +16,20 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import os
 from td.main import Model
 
 
 class ModelTest(object):
     def setUp(self):
         self.model = Model()
+        self.model.setPath(os.path.join(os.getcwd(), 'tests'))
+
+    def tearDown(self):
+        try:
+            os.remove(os.path.join(self.model.path, '.td'))
+        except OSError:
+            pass
 
 
 class TestAdd(ModelTest):

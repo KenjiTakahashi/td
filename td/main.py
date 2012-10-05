@@ -30,7 +30,7 @@ __version__ = '0.1'
 def load(func):
     """@decorator: Loads data before executing :func:."""
     def aux(self, *args, **kwargs):
-        path = os.getcwd()  # FIXME
+        path = hasattr(self, 'path') and self.path or os.getcwd()
         try:
             data = json.loads(open(os.path.join(path, '.td')).read())
         except IOError:
@@ -46,7 +46,7 @@ def save(func):
     """@decorator: Saves data after executing :func:."""
     def aux(self, *args, **kwargs):
         out = func(self, *args, **kwargs)
-        path = os.getcwd()  # FIXME
+        path = hasattr(self, 'path') and self.path or os.getcwd()
         open(os.path.join(path, '.td'), 'w').write(
             json.dumps({'items': self.data, 'refs': self.refs})
         )
@@ -56,6 +56,14 @@ def save(func):
 
 class Model(UserList):
     """Docstring for Model """
+
+    def setPath(self, path):
+        """Sets permanent storage path.
+
+        :path: New permanent storage path.
+
+        """
+        self.path = path
 
     @save
     @load

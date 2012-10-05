@@ -22,6 +22,7 @@ import sys
 import readline
 from collections import UserList
 from argparse import ArgumentParser
+import colorama
 
 
 __version__ = '0.1'
@@ -192,11 +193,6 @@ class Model(UserList):
 
     @load
     def __iter__(self):
-        """@todo: Docstring for __iter__
-
-        :returns: @todo
-
-        """
         return super(Model, self).__iter__()
 
     def _split(self, index):
@@ -215,25 +211,26 @@ class Model(UserList):
 class View(object):
     """Docstring for View """
 
-    def __init__(self, model):
+    def __init__(self, model, opts=None):
         """Creates new View instance.
 
+        Displays the Model contents, based on :opts: and exits.
+
         :model: Model instance.
+        :opts: Additional options for View looks.
 
         """
-        self.model = model
+        colors = [
+            None, colorama.Fore.BLUE, colorama.Fore.CYAN,
+            colorama.Fore.WHITE, colorama.Fore.YELLOW, colorama.Fore.RED
+        ]
+        colorama.init()
 
-    def show(self, opts):
-        """Displays a list of model's items and exits.
-
-        :opts: Additional options to customize the view.
-
-        """
         def _show(submodel, offset):
             for name, priority, comment, done, subitems in submodel:
-                print(" " * offset, name)
+                print("{0}{1}{2}".format(" " * offset, colors[priority], name))
                 _show(subitems, offset + 4)
-        _show(self.model, 0)
+        _show(model, 0)
 
 
 class Arg(object):
@@ -375,7 +372,11 @@ class Arg(object):
         readline.set_startup_hook(lambda: readline.insert_text(
             value is not None and str(value) or ""
         ))
-        value = input("{0}> ".format(field))
+        try:
+            value = input("{0}> ".format(field))
+        except KeyboardInterrupt:
+            print()
+            exit(0)
         readline.set_startup_hook()
         if field == 'priority':
             try:
@@ -390,5 +391,4 @@ def run():
     if len(sys.argv) > 1:
         Arg(model)
     else:
-        view = View(model)
-        view.show(None)
+        View(model)

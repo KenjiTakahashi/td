@@ -228,13 +228,21 @@ class View(object):
 
         def _show(submodel, offset):
             for name, priority, comment, done, subitems in submodel:
+                padding = " " * (lambda: offset - 2 if done else offset)()
                 print("{0}{1}{2}{3}{4}".format(
-                    " " * (lambda: offset - 2 if done else offset)(),
+                    padding,
                     done and '- ' or '',
                     colors[priority],
                     done and colorama.Style.DIM or colorama.Style.BRIGHT,
                     name
                 ))
+                if comment:
+                    print("{0}{1}{2}({3})".format(
+                        padding,
+                        colorama.Style.RESET_ALL,
+                        "",  # FIXME: italic text
+                        comment
+                    ))
                 _show(subitems, offset + 4)
         _show(model, 2)
 

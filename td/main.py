@@ -228,9 +228,15 @@ class View(object):
 
         def _show(submodel, offset):
             for name, priority, comment, done, subitems in submodel:
-                print("{0}{1}{2}".format(" " * offset, colors[priority], name))
+                print("{0}{1}{2}{3}{4}".format(
+                    " " * (lambda: offset - 2 if done else offset)(),
+                    done and '- ' or '',
+                    colors[priority],
+                    done and colorama.Style.DIM or colorama.Style.BRIGHT,
+                    name
+                ))
                 _show(subitems, offset + 4)
-        _show(model, 0)
+        _show(model, 2)
 
 
 class Arg(object):

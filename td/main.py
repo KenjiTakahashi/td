@@ -238,13 +238,14 @@ class View(object):
                     done and colorama.Style.DIM or colorama.Style.BRIGHT,
                     i, done and '-' or '.', name
                 ))
+                padding += " " * (len(str(i)) + 1)
                 if comment:
                     print("{0}{1}({2})".format(
                         padding,
                         colorama.Style.RESET_ALL,
                         comment
                     ))
-                _show(subitems, offset + 4)
+                _show(subitems, offset + 3)
         _show(model, 0)
 
 

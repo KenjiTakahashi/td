@@ -122,8 +122,8 @@ class Model(UserList):
             item[2] = comment
         if done is not None:
             item[3] = done
-        if parent is not None:
-            if parent == -1 or parent == '':
+        if parent is not None and parent != '':
+            if parent == -1:
                 self.append(item)
             else:
                 parentitem = self.data
@@ -227,24 +227,27 @@ class View(object):
         colorama.init()
 
         def _show(submodel, offset):
-            for name, priority, comment, done, subitems in submodel:
-                padding = " " * (lambda: offset - 2 if done else offset)()
-                print("{0}{1}{2}{3}{4}".format(
+            numoffset = len(str(len(list(submodel)))) - 1
+            for i, v in enumerate(submodel, start=1):
+                (name, priority, comment, done, subitems) = v
+                padding = " " * (lambda: offset - 1 if done else offset)()
+                if i < 10:
+                    padding += " " * numoffset
+                print("{0}{1}{2}{3}{4}.{5}".format(
                     padding,
-                    done and '- ' or '',
+                    done and '-' or '',
                     colors[priority],
                     done and colorama.Style.DIM or colorama.Style.BRIGHT,
-                    name
+                    i, name
                 ))
                 if comment:
-                    print("{0}{1}{2}({3})".format(
+                    print("{0}{1}({2})".format(
                         padding,
                         colorama.Style.RESET_ALL,
-                        "",  # FIXME: italic text
                         comment
                     ))
                 _show(subitems, offset + 4)
-        _show(model, 2)
+        _show(model, 1)
 
 
 class Arg(object):
@@ -368,7 +371,7 @@ class Arg(object):
             for field in ['priority', 'comment', 'parent']:
                 value = values.get(field)
                 fvalue = getattr(args, field) or self.get(field, value)
-                if field:
+                if fvalue is not None:
                     kwargs[field] = fvalue
             return kwargs
         else:

@@ -230,15 +230,13 @@ class View(object):
             numoffset = len(str(len(list(submodel)))) - 1
             for i, v in enumerate(submodel, start=1):
                 (name, priority, comment, done, subitems) = v
-                padding = " " * (lambda: offset - 1 if done else offset)()
+                padding = " " * offset
                 if i < 10:
                     padding += " " * numoffset
-                print("{0}{1}{2}{3}{4}.{5}".format(
-                    padding,
-                    done and '-' or '',
-                    colors[priority],
+                print("{0}{1}{2}{3}{4}{5}".format(
+                    padding, colors[priority],
                     done and colorama.Style.DIM or colorama.Style.BRIGHT,
-                    i, name
+                    i, done and '-' or '.', name
                 ))
                 if comment:
                     print("{0}{1}({2})".format(
@@ -247,7 +245,7 @@ class View(object):
                         comment
                     ))
                 _show(subitems, offset + 4)
-        _show(model, 1)
+        _show(model, 0)
 
 
 class Arg(object):

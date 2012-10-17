@@ -23,7 +23,7 @@ from td.main import __version__
 setup(
     name='td',
     version=__version__,
-    description='A per-project todo lists manager.',
+    description='A non-offensive, per project ToDo manager.',
     long_description=open('README.md').read(),
     author='Karol "Kenji Takahashi" Woźniak',
     author_email='wozniakk@gmail.com',

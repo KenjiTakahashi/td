@@ -261,20 +261,23 @@ class Arg(object):
 
         """
         self.model = model
-        self.arg = ArgumentParser(description="A non-offensive ToDo manager.")
+        self.arg = ArgumentParser(
+            description="A non-offensive, per project ToDo manager."
+        )
         self.arg.add_argument(
             '-v', '--version', action='version', version=__version__
         )
         subparsers = self.arg.add_subparsers(title="available commands")
         add = subparsers.add_parser('a', aliases=['add'], help="add new item")
-        add.add_argument('--parent',
-            help="parent index (omit to add top-level item)"
+        add.add_argument(
+            '--parent', help="parent index (omit to add top-level item)"
         )
         add.add_argument('-n', '--name')
         add.add_argument('-p', '--priority', type=int)
         add.add_argument('-c', '--comment')
         add.set_defaults(func=self.add)
-        edit = subparsers.add_parser('e', aliases=['edit'],
+        edit = subparsers.add_parser(
+            'e', aliases=['edit'],
             help="edit existing item (also used for reparenting)"
         )
         edit.add_argument('index', help="index of the item to edit")
@@ -283,18 +286,18 @@ class Arg(object):
         edit.add_argument('-p', '--priority', type=int, help="new priority")
         edit.add_argument('-c', '--comment', help="new comment")
         edit.set_defaults(func=self.edit)
-        rm = subparsers.add_parser('r', aliases=['rm'],
-            help="remove existing item"
+        rm = subparsers.add_parser(
+            'r', aliases=['rm'], help="remove existing item"
         )
         rm.add_argument('index', help="index of the item to remove")
         rm.set_defaults(func=self.rm)
-        done = subparsers.add_parser('d', aliases=['done'],
-            help="mark item as done"
+        done = subparsers.add_parser(
+            'd', aliases=['done'], help="mark item as done"
         )
         done.add_argument('index', help="index of the item to mark")
         done.set_defaults(func=self.done)
-        undone = subparsers.add_parser('D', aliases=['undone'],
-            help='mark item as not done'
+        undone = subparsers.add_parser(
+            'D', aliases=['undone'], help='mark item as not done'
         )
         undone.add_argument('index', help="index of the item to unmark")
         undone.set_defaults(func=self.undone)

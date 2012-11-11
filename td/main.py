@@ -146,17 +146,17 @@ class Arg(object):
         args.func(args)
 
     def view(self, args):
-        """@todo: Docstring for view
+        """Handles the 'v' command.
 
-        :args: @todo
+        :args: Arguments supplied to the 'v' command.
 
         """
         View(self.model.modify(purge=args.purge))
 
     def modify(self, args):
-        """@todo: Docstring for modify
+        """Handles the 'm' command.
 
-        :args: @todo
+        :args: Arguments supplied to the 'm' command.
 
         """
         self.model.modifyInPlace(purge=args.purge)
@@ -167,7 +167,7 @@ class Arg(object):
         :args: Arguments supplied to the 'a' command.
 
         """
-        kwargs = self.get_kwargs(args)
+        kwargs = self.getKwargs(args)
         if kwargs:
             self.model.add(**kwargs)
 
@@ -182,7 +182,7 @@ class Arg(object):
                 ['parent', 'name', 'priority', 'comment', 'done'],
                 self.model.get(args.index)
             ))
-            kwargs = self.get_kwargs(args, values)
+            kwargs = self.getKwargs(args, values)
             if kwargs:
                 self.model.edit(args.index, **kwargs)
 
@@ -213,7 +213,7 @@ class Arg(object):
         if self.model.exists(args.index):
             self.model.edit(args.index, done=False)
 
-    def get_kwargs(self, args, values={}):
+    def getKwargs(self, args, values={}):
         """Gets necessary data from stdin.
 
         @note: Also displays error message when no item name is set.

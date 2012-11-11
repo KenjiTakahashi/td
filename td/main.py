@@ -63,7 +63,7 @@ class View(object):
                         colorama.Style.RESET_ALL,
                         comment
                     ))
-                _show(subitems, offset + 3)
+                _show(subitems, offset + 2 + numoffset)
         _show(model, 0)
 
 

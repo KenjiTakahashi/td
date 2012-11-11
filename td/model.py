@@ -196,16 +196,25 @@ class Model(UserList):
         :returns: New database, modified according to supplied arguments.
 
         """
-        def _modify(submodel):
+        if sort is not None:
+            sortAll, sortLevels = sort
+
+        def _modify(submodel, i):
             _new = list()
             for v in submodel:
                 if purge:
                     if not v[3]:
-                        _new.append([v[0], v[1], v[2], v[3], _modify(v[4])])
+                        _new.append([
+                            v[0], v[1], v[2], v[3], _modify(v[4], i + 1)
+                        ])
                 else:
-                    _new.append([v[0], v[1], v[2], v[3], _modify(v[4])])
-            return _new
-        return _modify(self.data)
+                    _new.append([v[0], v[1], v[2], v[3], _modify(v[4], i + 1)])
+            try:
+                index, reverse = sortLevels.get(i) or sortAll
+                return sorted(_new, key=lambda e: e[index], reverse=reverse)
+            except (TypeError, NameError):
+                return _new
+        return _modify(self.data, 0)
 
     @save
     def modifyInPlace(self, *, sort=None, purge=False, done=None, undone=None):

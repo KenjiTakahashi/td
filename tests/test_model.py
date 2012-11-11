@@ -139,12 +139,20 @@ class TestGet(ModelTest):
 class ModifyTest(ModelTest):
     def setUp(self):
         super(ModifyTest, self).setUp()
-        self.model.add("testname1")
+        self.model.add("testname1", priority=4)
         self.model.add("testname2")
         self.model.edit("1", done=True)
 
 
 class TestModify(ModifyTest):
+    def addSecondLevel(self):
+        self.model.add("testname3", priority=2, parent="2")
+        self.model.add("testname4", parent="2")
+
+    def addThirdLevel(self):
+        self.model.add("testname5", parent="2.1")
+        self.model.add("testname6", priority=2, parent="2.1")
+
     def test_purge_done_when_enabled(self):
         result = self.model.modify(purge=True)
         assert result == [["testname2", 3, "", False, []]]
@@ -157,19 +165,127 @@ class TestModify(ModifyTest):
     def test_do_not_purge_when_disabled(self):
         result = self.model.modify()
         assert result == [
-            ["testname1", 3, "", True, []],
+            ["testname1", 4, "", True, []],
             ["testname2", 3, "", False, []]
+        ]
+
+    def test_sort_only_first_level_by_name(self):
+        self.addSecondLevel()
+        sort = (None, {0: (0, True)})
+        result = self.model.modify(sort=sort)
+        assert result == [
+            ["testname2", 3, "", False, [
+                ["testname3", 2, "", False, []],
+                ["testname4", 3, "", False, []]
+            ]],
+            ["testname1", 4, "", True, []]
+        ]
+
+    def test_sort_only_first_level_by_priority(self):
+        self.addSecondLevel()
+        sort = (None, {0: (1, False)})
+        result = self.model.modify(sort=sort)
+        assert result == [
+            ["testname2", 3, "", False, [
+                ["testname3", 2, "", False, []],
+                ["testname4", 3, "", False, []]
+            ]],
+            ["testname1", 4, "", True, []]
+        ]
+
+    def test_sort_only_second_level_by_name(self):
+        self.addSecondLevel()
+        sort = (None, {1: (0, True)})
+        result = self.model.modify(sort=sort)
+        assert result == [
+            ["testname1", 4, "", True, []],
+            ["testname2", 3, "", False, [
+                ["testname4", 3, "", False, []],
+                ["testname3", 2, "", False, []]
+            ]]
+        ]
+
+    def test_sort_only_second_level_by_priority(self):
+        self.addSecondLevel()
+        sort = (None, {1: (1, True)})
+        result = self.model.modify(sort=sort)
+        assert result == [
+            ["testname1", 4, "", True, []],
+            ["testname2", 3, "", False, [
+                ["testname4", 3, "", False, []],
+                ["testname3", 2, "", False, []]
+            ]]
+        ]
+
+    def test_sort_all_levels_by_name(self):
+        self.addSecondLevel()
+        self.addThirdLevel()
+        sort = ((0, True), {})
+        result = self.model.modify(sort=sort)
+        assert result == [
+            ["testname2", 3, "", False, [
+                ["testname4", 3, "", False, []],
+                ["testname3", 2, "", False, [
+                    ["testname6", 2, "", False, []],
+                    ["testname5", 3, "", False, []]
+                ]]
+            ]],
+            ["testname1", 4, "", True, []]
+        ]
+
+    def test_sort_all_levels_by_priority(self):
+        self.addSecondLevel()
+        self.addThirdLevel()
+        sort = ((1, False), {})
+        result = self.model.modify(sort=sort)
+        assert result == [
+            ["testname2", 3, "", False, [
+                ["testname3", 2, "", False, [
+                    ["testname6", 2, "", False, []],
+                    ["testname5", 3, "", False, []]
+                ]],
+                ["testname4", 3, "", False, []]
+            ]],
+            ["testname1", 4, "", True, []]
+        ]
+
+    def test_sort_first_level_by_name_and_third_level_by_priority(self):
+        self.addSecondLevel()
+        self.addThirdLevel()
+        sort = (None, {0: (0, True), 2: (1, False)})
+        result = self.model.modify(sort=sort)
+        assert result == [
+            ["testname2", 3, "", False, [
+                ["testname3", 2, "", False, [
+                    ["testname6", 2, "", False, []],
+                    ["testname5", 3, "", False, []]
+                ]],
+                ["testname4", 3, "", False, []]
+            ]],
+            ["testname1", 4, "", True, []]
+        ]
+
+    def test_sort_second_level_by_priority_and_rest_by_name(self):
+        self.addSecondLevel()
+        self.addThirdLevel()
+        sort = ((0, True), {1: (1, True)})
+        result = self.model.modify(sort=sort)
+        assert result == [
+            ["testname2", 3, "", False, [
+                ["testname4", 3, "", False, []],
+                ["testname3", 2, "", False, [
+                    ["testname6", 2, "", False, []],
+                    ["testname5", 3, "", False, []]
+                ]],
+            ]],
+            ["testname1", 4, "", True, []]
         ]
 
 
 class TestModifyInPlace(ModifyTest):
-    def test_purge_done_when_enabled(self):
+    def test_if_changes_get_propagated_to_source_model(self):
+        # We use purge here, but it doesn't matter.
+        # Model.modifyInPlace calls Model.modify, so
+        # see TestModify for different options tests.
         self.model.modifyInPlace(purge=True)
         assert self.model == [["testname2", 3, "", False, []]]
-
-    def test_do_not_purge_when_disabled(self):
-        self.model.modifyInPlace(purge=False)
-        assert self.model == [
-            ["testname1", 3, "", True, []],
-            ["testname2", 3, "", False, []]
-        ]

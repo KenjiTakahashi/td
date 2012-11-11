@@ -86,29 +86,42 @@ class Arg(object):
             '-v', '--version', action='version', version=__version__
         )
         subparsers = self.arg.add_subparsers(title="available commands")
+
         view = subparsers.add_parser(
             'v', aliases=['view'], help="modify the view"
         )
-        view.add_argument('-s', '--sort', help="sort the view")
+        view.add_argument(
+            '-s', '--sort', nargs='?', const=True, help="sort the view"
+        )
         view.add_argument(
             '-p', '--purge', action='store_true', help="hide completed items"
         )
-        view.add_argument('-d', '--done', help="show all items as done")
-        view.add_argument('-D', '--undone', help="show all items as not done")
+        view.add_argument(
+            '-d', '--done', nargs='?', help="show all items as done"
+        )
+        view.add_argument(
+            '-D', '--undone', nargs='?', help="show all items as not done"
+        )
         view.set_defaults(func=self.view)
+
         modify = subparsers.add_parser(
             'm', aliases=['modify'], help="modify the database"
         )
-        modify.add_argument('-s', '--sort', help="sort the database")
+        modify.add_argument(
+            '-s', '--sort', nargs='?', const=True, help="sort the database"
+        )
         modify.add_argument(
             '-p', '--purge', action='store_true',
             help="remove completed items"
         )
-        modify.add_argument('-d', '--done', help="mark all items as done")
         modify.add_argument(
-            '-D', '--undone', help="mark all items as not done"
+            '-d', '--done', nargs='?', help="mark all items as done"
+        )
+        modify.add_argument(
+            '-D', '--undone', nargs='?', help="mark all items as not done"
         )
         modify.set_defaults(func=self.modify)
+
         add = subparsers.add_parser('a', aliases=['add'], help="add new item")
         add.add_argument(
             '--parent', help="parent index (omit to add top-level item)"
@@ -117,6 +130,7 @@ class Arg(object):
         add.add_argument('-p', '--priority', type=int)
         add.add_argument('-c', '--comment')
         add.set_defaults(func=self.add)
+
         edit = subparsers.add_parser(
             'e', aliases=['edit'],
             help="edit existing item (also used for reparenting)"
@@ -127,23 +141,53 @@ class Arg(object):
         edit.add_argument('-p', '--priority', type=int, help="new priority")
         edit.add_argument('-c', '--comment', help="new comment")
         edit.set_defaults(func=self.edit)
+
         rm = subparsers.add_parser(
             'r', aliases=['rm'], help="remove existing item"
         )
         rm.add_argument('index', help="index of the item to remove")
         rm.set_defaults(func=self.rm)
+
         done = subparsers.add_parser(
             'd', aliases=['done'], help="mark item as done"
         )
         done.add_argument('index', help="index of the item to mark")
         done.set_defaults(func=self.done)
+
         undone = subparsers.add_parser(
             'D', aliases=['undone'], help='mark item as not done'
         )
         undone.add_argument('index', help="index of the item to unmark")
         undone.set_defaults(func=self.undone)
+
         args = self.arg.parse_args()
         args.func(args)
+
+    def _getSortPattern(self, sort):
+        """@todo: Docstring for _getSortPattern
+
+        :sort: @todo
+        :returns: @todo
+
+        """
+        def _getReverse(pm):
+            if pm == '+':
+                return True
+            elif pm == '-':
+                return False
+            return None  # raise something? error
+        sort1 = None
+        if sort[0] == '+':
+            sort1 = True
+        elif sort[0] == '-':
+            sort1 = False
+        if sort1 is not None:
+            sort = sort[1:]
+        try:
+            sort2 = {int(v[:-1]): _getReverse(v[-1]) for v in sort.split(',')}
+        except ValueError:
+            pass  # raise something? log error
+        return (sort1, sort2)
 
     def view(self, args):
         """Handles the 'v' command.
@@ -151,7 +195,9 @@ class Arg(object):
         :args: Arguments supplied to the 'v' command.
 
         """
-        View(self.model.modify(purge=args.purge))
+        View(self.model.modify(
+            sort=self._getSortPattern(args.sort), purge=args.purge
+        ))
 
     def modify(self, args):
         """Handles the 'm' command.

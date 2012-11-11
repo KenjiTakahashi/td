@@ -83,7 +83,7 @@ class Model(UserList):
 
     @save
     @load
-    def modify(
+    def edit(
         self, index, name=None, priority=None,
         comment=None, done=None, parent=None
     ):
@@ -93,7 +93,7 @@ class Model(UserList):
         If parent is not None, the item will get reparented.
         Use parent=-1 or parent='' for reparenting to top-level.
 
-        :index: Index of the item to modify.
+        :index: Index of the item to edit.
         :name: New name.
         :priority: New priority.
         :comment: New comment.
@@ -183,6 +183,18 @@ class Model(UserList):
             i = int(c) - 1
             data = data[i][4]
         return [index[:-2] or ""] + data[int(index[-1]) - 1]
+
+    @load
+    def modify(self, sort=False, purge=False, done=False, undone=False):
+        """@todo: Docstring for modify
+
+        :purge: @todo
+        :done: @todo
+        :undone: @todo
+        :returns: @todo
+
+        """
+        pass
 
     @load
     def __iter__(self):

@@ -87,10 +87,23 @@ class Arg(object):
         )
         subparsers = self.arg.add_subparsers(title="available commands")
         view = subparsers.add_parser(
-            'v', aliases=['view'], help="change view looks"
+            'v', aliases=['view'], help="modify the view"
         )
-        view.add_argument('-s', '--sort', help="set sorting mechanism")
+        view.add_argument('-s', '--sort', help="sort the view")
+        view.add_argument('-p', '--purge', help="hide completed items")
+        view.add_argument('-d', '--done', help="show all items as done")
+        view.add_argument('-D', '--undone', help="show all items as not done")
         view.set_defaults(func=self.view)
+        modify = subparsers.add_parser(
+            'm', aliases=['modify'], help="modify the database"
+        )
+        modify.add_argument('-s', '--sort', help="sort the database")
+        modify.add_argument('-p', '--purge', help="remove completed items")
+        modify.add_argument('-d', '--done', help="mark all items as done")
+        modify.add_argument(
+            '-D', '--undone', help="mark all items as not done"
+        )
+        modify.set_defaults(func=self.modify)
         add = subparsers.add_parser('a', aliases=['add'], help="add new item")
         add.add_argument(
             '--parent', help="parent index (omit to add top-level item)"
@@ -135,6 +148,14 @@ class Arg(object):
         """
         pass
 
+    def modify(self, args):
+        """@todo: Docstring for modify
+
+        :args: @todo
+
+        """
+        pass
+
     def add(self, args):
         """Handles the 'a' command.
 
@@ -158,7 +179,7 @@ class Arg(object):
             ))
             kwargs = self.get_kwargs(args, values)
             if kwargs:
-                self.model.modify(args.index, **kwargs)
+                self.model.edit(args.index, **kwargs)
 
     def rm(self, args):
         """Handles the 'r' command.
@@ -176,7 +197,7 @@ class Arg(object):
 
         """
         if self.model.exists(args.index):
-            self.model.modify(args.index, done=True)
+            self.model.edit(args.index, done=True)
 
     def undone(self, args):
         """Handles the 'D' command.
@@ -185,7 +206,7 @@ class Arg(object):
 
         """
         if self.model.exists(args.index):
-            self.model.modify(args.index, done=False)
+            self.model.edit(args.index, done=False)
 
     def get_kwargs(self, args, values={}):
         """Gets necessary data from stdin.

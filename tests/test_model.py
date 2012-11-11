@@ -59,9 +59,9 @@ class TestRemove(ModelTest):
         assert self.model == [["testname", 3, "", False, []]]
 
 
-class TestModify(ModelTest):
+class TestEdit(ModelTest):
     def setUp(self):
-        super(TestModify, self).setUp()
+        super(TestEdit, self).setUp()
         self.model.add("testname")
 
     def test_edit_name(self):
@@ -75,6 +75,15 @@ class TestModify(ModelTest):
     def test_edit_comment(self):
         self.model.edit("1", comment="testcomment")
         assert self.model == [["testname", 3, "testcomment", False, []]]
+
+    def test_mark_as_done(self):
+        self.model.edit("1", done=True)
+        assert self.model == [["testname", 3, "", True, []]]
+
+    def test_mark_as_undone(self):
+        self.model.edit("1", done=True)
+        self.model.edit("1", done=False)
+        assert self.model == [["testname", 3, "", False, []]]
 
     def test_reparent(self):
         self.model.add("testname2", parent="1")
@@ -125,3 +134,22 @@ class TestGet(ModelTest):
     def test_get_second_level_item(self):
         self.model.add("testname2", parent="1")
         assert self.model.get("1.1") == ["1", "testname2", 3, "", False, []]
+
+
+class TestModify(ModelTest):
+    def setUp(self):
+        super(TestModify, self).setUp()
+        self.model.add("testname1")
+        self.model.add("testname2")
+        self.model.edit("1", done=True)
+
+    def test_purge_done_when_enabled(self):
+        result = self.model.modify(purge=True)
+        assert result == [["testname2", 3, "", False, []]]
+
+    def test_do_not_purge_when_disabled(self):
+        result = self.model.modify()
+        assert result == [
+            ["testname1", 3, "", True, []],
+            ["testname2", 3, "", False, []]
+        ]

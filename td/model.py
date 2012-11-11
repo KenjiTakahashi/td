@@ -185,16 +185,35 @@ class Model(UserList):
         return [index[:-2] or ""] + data[int(index[-1]) - 1]
 
     @load
-    def modify(self, sort=False, purge=False, done=False, undone=False):
-        """@todo: Docstring for modify
+    def modify(self, *, sort=None, purge=False, done=None, undone=None):
+        """Creates a whole new database from existing one, based on given
+        modifiers.
 
-        :purge: @todo
-        :done: @todo
-        :undone: @todo
-        :returns: @todo
+        :sort: Pattern on which to sort the database.
+        :purge: Whether to purge done items.
+        :done: Pattern on which to mark items as done.
+        :undone: Pattern on which to mark items as not done.
+        :returns: New database, modified according to supplied arguments.
 
         """
-        pass
+        def _modify(submodel):
+            _new = list()
+            for v in submodel:
+                if purge:
+                    if not v[3]:
+                        _new.append([v[0], v[1], v[2], v[3], _modify(v[4])])
+                else:
+                    _new.append([v[0], v[1], v[2], v[3], _modify(v[4])])
+            return _new
+        return _modify(self.data)
+
+    @save
+    def modifyInPlace(self, *, sort=None, purge=False, done=None, undone=None):
+        """Like Model.modify, but changes existing database instead of
+        returning the new one."""
+        self.data = self.modify(
+            sort=sort, purge=purge, done=done, undone=undone
+        )
 
     @load
     def __iter__(self):

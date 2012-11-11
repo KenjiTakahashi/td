@@ -136,20 +136,40 @@ class TestGet(ModelTest):
         assert self.model.get("1.1") == ["1", "testname2", 3, "", False, []]
 
 
-class TestModify(ModelTest):
+class ModifyTest(ModelTest):
     def setUp(self):
-        super(TestModify, self).setUp()
+        super(ModifyTest, self).setUp()
         self.model.add("testname1")
         self.model.add("testname2")
         self.model.edit("1", done=True)
 
+
+class TestModify(ModifyTest):
     def test_purge_done_when_enabled(self):
+        result = self.model.modify(purge=True)
+        assert result == [["testname2", 3, "", False, []]]
+
+    def test_purge_from_second_level(self):
+        self.model.add("testname3", parent="1")
         result = self.model.modify(purge=True)
         assert result == [["testname2", 3, "", False, []]]
 
     def test_do_not_purge_when_disabled(self):
         result = self.model.modify()
         assert result == [
+            ["testname1", 3, "", True, []],
+            ["testname2", 3, "", False, []]
+        ]
+
+
+class TestModifyInPlace(ModifyTest):
+    def test_purge_done_when_enabled(self):
+        self.model.modifyInPlace(purge=True)
+        assert self.model == [["testname2", 3, "", False, []]]
+
+    def test_do_not_purge_when_disabled(self):
+        self.model.modifyInPlace(purge=False)
+        assert self.model == [
             ["testname1", 3, "", True, []],
             ["testname2", 3, "", False, []]
         ]

@@ -90,7 +90,9 @@ class Arg(object):
             'v', aliases=['view'], help="modify the view"
         )
         view.add_argument('-s', '--sort', help="sort the view")
-        view.add_argument('-p', '--purge', help="hide completed items")
+        view.add_argument(
+            '-p', '--purge', action='store_true', help="hide completed items"
+        )
         view.add_argument('-d', '--done', help="show all items as done")
         view.add_argument('-D', '--undone', help="show all items as not done")
         view.set_defaults(func=self.view)
@@ -98,7 +100,10 @@ class Arg(object):
             'm', aliases=['modify'], help="modify the database"
         )
         modify.add_argument('-s', '--sort', help="sort the database")
-        modify.add_argument('-p', '--purge', help="remove completed items")
+        modify.add_argument(
+            '-p', '--purge', action='store_true',
+            help="remove completed items"
+        )
         modify.add_argument('-d', '--done', help="mark all items as done")
         modify.add_argument(
             '-D', '--undone', help="mark all items as not done"
@@ -146,7 +151,7 @@ class Arg(object):
         :args: @todo
 
         """
-        pass
+        View(self.model.modify(purge=args.purge))
 
     def modify(self, args):
         """@todo: Docstring for modify
@@ -154,7 +159,7 @@ class Arg(object):
         :args: @todo
 
         """
-        pass
+        self.model.modifyInPlace(purge=args.purge)
 
     def add(self, args):
         """Handles the 'a' command.

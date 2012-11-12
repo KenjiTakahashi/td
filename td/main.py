@@ -164,29 +164,64 @@ class Arg(object):
         args.func(args)
 
     def _getSortPattern(self, sort):
-        """@todo: Docstring for _getSortPattern
+        """Parses sort pattern.
 
-        :sort: @todo
-        :returns: @todo
+        :sort: Sort pattern to parse.
+        :returns: A pattern suitable for Model.modify.
 
         """
+        if sort is None:
+            return None
+        if sort is True:
+            return((0, False), {})
+
         def _getReverse(pm):
             if pm == '+':
                 return True
             elif pm == '-':
                 return False
-            return None  # raise something? error
-        sort1 = None
-        if sort[0] == '+':
-            sort1 = True
-        elif sort[0] == '-':
-            sort1 = False
-        if sort1 is not None:
-            sort = sort[1:]
-        try:
-            sort2 = {int(v[:-1]): _getReverse(v[-1]) for v in sort.split(',')}
-        except ValueError:
-            pass  # raise something? log error
+            return None
+
+        def _getIndex(k):
+            try:
+                return int(k)
+            except ValueError:
+                pass  # FIXME: raise something? error
+        indexes = {
+            "name": 0,
+            "priority": 1,
+            "comment": 2,
+            "state": 3
+        }
+        split = sort.split(',')
+        sort1 = split[0].split(':')
+        if len(sort1) == 1:
+            sort1 = sort1[0]
+            try:
+                sort1 = (indexes[sort1[:-1]], _getReverse(sort1[-1]))
+            except IndexError:
+                pass  # FIXME: raise something? error
+            split = split[1:]
+        else:
+            sort1 = None
+        sort2 = dict()
+        for s in split:
+            v = _getReverse(s[-1])
+            if v is None:
+                pass  # FIXME: raise something? error
+            k = s.split(':')
+            if len(k) == 1:
+                k = _getIndex(k[0])
+                v = (0, v)
+            elif len(k) == 2:
+                try:
+                    v = (indexes[k[1][:-1]], v)
+                    k = _getIndex(k[0])
+                except IndexError:
+                    pass  # FIXME: raise something? error
+            else:
+                pass  # FIXME: raise something? error
+            sort2[k] = v
         return (sort1, sort2)
 
     def view(self, args):
@@ -196,7 +231,8 @@ class Arg(object):
 
         """
         View(self.model.modify(
-            sort=self._getSortPattern(args.sort), purge=args.purge
+            sort=self._getSortPattern(args.sort),
+            purge=args.purge
         ))
 
     def modify(self, args):
@@ -205,7 +241,10 @@ class Arg(object):
         :args: Arguments supplied to the 'm' command.
 
         """
-        self.model.modifyInPlace(purge=args.purge)
+        self.model.modifyInPlace(
+            sort=self._getSortPattern(args.sort),
+            purge=args.purge
+        )
 
     def add(self, args):
         """Handles the 'a' command.

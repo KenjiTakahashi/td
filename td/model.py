@@ -51,6 +51,13 @@ def save(func):
 class Model(UserList):
     """Docstring for Model """
 
+    indexes = {
+        "name": 0,
+        "priority": 1,
+        "comment": 2,
+        "state": 3
+    }
+
     def setPath(self, path):
         """Sets permanent storage path.
 

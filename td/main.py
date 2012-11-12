@@ -187,18 +187,12 @@ class Arg(object):
                 return int(k)
             except ValueError:
                 pass  # FIXME: raise something? error
-        indexes = {
-            "name": 0,
-            "priority": 1,
-            "comment": 2,
-            "state": 3
-        }
         split = sort.split(',')
         sort1 = split[0].split(':')
         if len(sort1) == 1:
             sort1 = sort1[0]
             try:
-                sort1 = (indexes[sort1[:-1]], _getReverse(sort1[-1]))
+                sort1 = (Model.indexes[sort1[:-1]], _getReverse(sort1[-1]))
             except IndexError:
                 pass  # FIXME: raise something? error
             split = split[1:]
@@ -215,7 +209,7 @@ class Arg(object):
                 v = (0, v)
             elif len(k) == 2:
                 try:
-                    v = (indexes[k[1][:-1]], v)
+                    v = (Model.indexes[k[1][:-1]], v)
                     k = _getIndex(k[0])
                 except IndexError:
                     pass  # FIXME: raise something? error

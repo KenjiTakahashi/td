@@ -163,16 +163,17 @@ class Arg(object):
         args = self.arg.parse_args()
         args.func(args)
 
-    def _getSortPattern(self, sort):
+    def _getPattern(self, ipattern, done=None):
         """Parses sort pattern.
 
-        :sort: Sort pattern to parse.
+        :ipattern: A pattern to parse.
+        :done: @todo
         :returns: A pattern suitable for Model.modify.
 
         """
-        if sort is None:
+        if ipattern is None:
             return None
-        if sort is True:
+        if ipattern is True:
             return((0, False), {})
 
         def _getReverse(pm):
@@ -187,36 +188,46 @@ class Arg(object):
                 return int(k)
             except ValueError:
                 pass  # FIXME: raise something? error
-        split = sort.split(',')
-        sort1 = split[0].split(':')
-        if len(sort1) == 1:
-            sort1 = sort1[0]
+        split = ipattern.split(',')
+        ipattern1 = split[0].split(':')
+        if len(ipattern1) == 1:
+            ipattern1 = ipattern1[0]
             try:
-                sort1 = (Model.indexes[sort1[:-1]], _getReverse(sort1[-1]))
-            except IndexError:
-                pass  # FIXME: raise something? error
-            split = split[1:]
+                if len(ipattern1) == 1:
+                    index = 0
+                else:
+                    index = Model.indexes[ipattern1[:-1]]
+                ipattern1 = (index, _getReverse(ipattern1[-1]))
+                split = split[1:]
+            except KeyError:
+                ipattern1 = None
         else:
-            sort1 = None
-        sort2 = dict()
+            ipattern1 = None
+        ipattern2 = dict()
         for s in split:
-            v = _getReverse(s[-1])
-            if v is None:
-                pass  # FIXME: raise something? error
+            if done is not None:
+                v = done
+            else:
+                v = _getReverse(s[-1])
+                if v is None:
+                    pass  # FIXME: raise something? error
             k = s.split(':')
             if len(k) == 1:
-                k = _getIndex(k[0])
+                k = _getIndex(k[0][:-1])
                 v = (0, v)
             elif len(k) == 2:
                 try:
-                    v = (Model.indexes[k[1][:-1]], v)
+                    if done is not None:
+                        v = (Model.indexes[k[1]], v)
+                    else:
+                        v = (Model.indexes[k[1][:-1]], v)
                     k = _getIndex(k[0])
                 except IndexError:
                     pass  # FIXME: raise something? error
             else:
                 pass  # FIXME: raise something? error
-            sort2[k] = v
-        return (sort1, sort2)
+            ipattern2[k] = v
+        return (ipattern1, ipattern2)
 
     def view(self, args):
         """Handles the 'v' command.
@@ -225,7 +236,7 @@ class Arg(object):
 
         """
         View(self.model.modify(
-            sort=self._getSortPattern(args.sort),
+            sort=self._getPattern(args.sort),
             purge=args.purge
         ))
 
@@ -236,7 +247,7 @@ class Arg(object):
 
         """
         self.model.modifyInPlace(
-            sort=self._getSortPattern(args.sort),
+            sort=self._getPattern(args.sort),
             purge=args.purge
         )
 

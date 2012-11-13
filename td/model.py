@@ -192,14 +192,22 @@ class Model(UserList):
         return [index[:-2] or ""] + data[int(index[-1]) - 1]
 
     @load
-    def modify(self, *, sort=None, purge=False, done=None, undone=None):
+    def modify(self, *, sort=None, purge=False, done=None):
         """Creates a whole new database from existing one, based on given
         modifiers.
 
+        :sort: pattern should look like this:
+        (None|(<index>, True|False), {<level_index>: (<index>: True|False)}),
+        where True|False are indicate whether to reverse or not,
+        <index> are one from Model.indexes and <level_index> indicate
+        a number of level to sort.
+
+        :done: pattern looks same as :sort:, except that True|False means
+        to mark as done|undone.
+
         :sort: Pattern on which to sort the database.
         :purge: Whether to purge done items.
-        :done: Pattern on which to mark items as done.
-        :undone: Pattern on which to mark items as not done.
+        :done: Pattern on which to mark items as done/undone.
         :returns: New database, modified according to supplied arguments.
 
         """
@@ -224,12 +232,10 @@ class Model(UserList):
         return _modify(self.data, 0)
 
     @save
-    def modifyInPlace(self, *, sort=None, purge=False, done=None, undone=None):
+    def modifyInPlace(self, *, sort=None, purge=False, done=None):
         """Like Model.modify, but changes existing database instead of
         returning the new one."""
-        self.data = self.modify(
-            sort=sort, purge=purge, done=done, undone=undone
-        )
+        self.data = self.modify(sort=sort, purge=purge, done=done)
 
     @load
     def __iter__(self):

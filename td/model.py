@@ -214,16 +214,18 @@ class Model(UserList):
         if sort is not None:
             sortAll, sortLevels = sort
 
+        def _mark(v, i):
+            # TODO: process :done:
+            return [v[0], v[1], v[2], v[3]]
+
         def _modify(submodel, i):
             _new = list()
             for v in submodel:
                 if purge:
                     if not v[3]:
-                        _new.append([
-                            v[0], v[1], v[2], v[3], _modify(v[4], i + 1)
-                        ])
+                        _new.append(_mark(v, i) + [_modify(v[4], i + 1)])
                 else:
-                    _new.append([v[0], v[1], v[2], v[3], _modify(v[4], i + 1)])
+                    _new.append(_mark(v, i) + [_modify(v[4], i + 1)])
             try:
                 index, reverse = sortLevels.get(i) or sortAll
                 return sorted(_new, key=lambda e: e[index], reverse=reverse)

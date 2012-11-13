@@ -21,6 +21,43 @@ import json
 from collections import UserList
 
 
+def devtodo(path):
+    try:
+        inp = open(os.path.join(path, '.todo')).read()
+    except IOError:
+        return None
+    else:
+        import xml.etree.ElementTree as etree
+        tree = etree.fromstring(inp)
+
+        def _build(subtree):
+            _data = list()
+            for elem in subtree:
+                attr = elem.attrib
+                comment = ""
+                children = list()
+                try:
+                    child = elem[0]
+                except IndexError:
+                    pass
+                else:
+                    if child.tag == 'comment':
+                        comment = child.text.strip()
+                    else:
+                        children = _build(elem)
+                _data.append([
+                    elem.text.strip(),
+                    Model.priorities.index(attr['priority']),
+                    comment, bool(attr.get('done')), children
+                ])
+            return _data
+        data = _build(tree)
+        open(os.path.join(path, '.td'), 'w').write(
+            json.dumps({'items': data, 'refs': dict()})
+        )
+        return data
+
+
 def load(func):
     """@decorator: Loads data before executing :func:."""
     def aux(self, *args, **kwargs):
@@ -28,6 +65,9 @@ def load(func):
         try:
             data = json.loads(open(os.path.join(path, '.td')).read())
         except IOError:
+            data = devtodo(path)
+            if data is not None:
+                self[:] = data
             self.refs = dict()
         else:
             self[:] = data['items']
@@ -57,6 +97,7 @@ class Model(UserList):
         "comment": 2,
         "state": 3
     }
+    priorities = [None, "lowest", "low", "medium", "high", "highest"]
 
     def setPath(self, path):
         """Sets permanent storage path.

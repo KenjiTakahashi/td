@@ -51,7 +51,8 @@ class View(object):
                 padding = " " * offset
                 if i < 10:
                     padding += " " * numoffset
-                print("{0}{1}{2}{3}{4}{5}".format(
+                print("{0}{1}{2}{3}{4}{5}{6}".format(
+                    colorama.Style.RESET_ALL,
                     padding, colors[priority],
                     done and colorama.Style.DIM or colorama.Style.BRIGHT,
                     i, done and '-' or '.', name

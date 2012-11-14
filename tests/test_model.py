@@ -153,6 +153,10 @@ class TestModify(ModifyTest):
         self.model.add("testname5", parent="2.1")
         self.model.add("testname6", priority=2, parent="2.1")
 
+    def addComments(self):
+        self.model.edit("1", comment="testcomment1")
+        self.model.edit("2", comment="testcomment2")
+
     def test_purge_done_when_enabled(self):
         result = self.model.modify(purge=True)
         assert result == [["testname2", 3, "", False, []]]
@@ -279,6 +283,44 @@ class TestModify(ModifyTest):
                 ]],
             ]],
             ["testname1", 4, "", True, []]
+        ]
+
+    def test_done_all_levels(self):
+        self.addSecondLevel()
+        done = ((None, None, True), {})
+        result = self.model.modify(done=done)
+        assert result == [
+            ["testname1", 4, "", True, []],
+            ["testname2", 3, "", True, [
+                ["testname3", 2, "", True, []],
+                ["testname4", 3, "", True, []]
+            ]]
+        ]
+
+    def test_done_all_levels_by_regexp(self):
+        self.addSecondLevel()
+        self.addComments()
+        done = ((None, r'test.*[1|2|3]', True), {})
+        result = self.model.modify(done=done)
+        assert result == [
+            ["testname1", 4, "testcomment1", True, []],
+            ["testname2", 3, "testcomment2", True, [
+                ["testname3", 2, "", True, []],
+                ["testname4", 3, "", False, []]
+            ]]
+        ]
+
+    def test_done_all_levels_name_by_regexp(self):
+        self.addSecondLevel()
+        self.addComments()
+        done = ((0, r'test.*[1|3]', True), {})
+        result = self.model.modify(done=done)
+        assert result == [
+            ["testname1", 4, "testcomment1", True, []],
+            ["testname2", 3, "testcomment2", False, [
+                ["testname3", 2, "", True, []],
+                ["testname4", 3, "", False, []]
+            ]]
         ]
 
 

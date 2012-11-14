@@ -18,6 +18,7 @@
 
 import os
 import json
+import re
 from collections import UserList
 
 
@@ -138,6 +139,7 @@ class Model(UserList):
         """Modifies :index: to specified data.
 
         Every argument, which is not None, will get changed.
+
         If parent is not None, the item will get reparented.
         Use parent=-1 or parent='' for reparenting to top-level.
 
@@ -238,13 +240,13 @@ class Model(UserList):
         modifiers.
 
         :sort: pattern should look like this:
-        (None|(<index>, True|False), {<level_index>: (<index>: True|False)}),
-        where True|False are indicate whether to reverse or not,
-        <index> are one from Model.indexes and <level_index> indicate
+        (None|(<index>, True|False), {<level_index>: (<index>, True|False)}),
+        where True|False indicate whether to reverse or not,
+        <index> are one of Model.indexes and <level_index> indicate
         a number of level to sort.
 
-        :done: pattern looks same as :sort:, except that True|False means
-        to mark as done|undone.
+        :done: pattern looks similar to :sort:, except that it has additional
+        <regexp> values and that True|False means to mark as done|undone.
 
         :sort: Pattern on which to sort the database.
         :purge: Whether to purge done items.
@@ -254,10 +256,21 @@ class Model(UserList):
         """
         if sort is not None:
             sortAll, sortLevels = sort
+        if done is not None:
+            doneAll, doneLevels = done
 
         def _mark(v, i):
-            # TODO: process :done:
-            return [v[0], v[1], v[2], v[3]]
+            if done is None:
+                return v[:4]
+            index, regexp, du = doneAll
+            if index is None:
+                for v_ in v[:3]:
+                    if regexp is None or re.match(regexp, str(v_)):
+                        return v[:3] + [du]
+                return v[:4]
+            if regexp is None or re.match(regexp, str(v[index])):
+                return v[:3] + [du]
+            return v[:4]
 
         def _modify(submodel, i):
             _new = list()

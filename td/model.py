@@ -262,15 +262,27 @@ class Model(UserList):
         def _mark(v, i):
             if done is None:
                 return v[:4]
-            index, regexp, du = doneAll
-            if index is None:
-                for v_ in v[:3]:
-                    if regexp is None or re.match(regexp, str(v_)):
-                        return v[:3] + [du]
+
+            def _mark_(index, regexp, du):
+                if du is None:
+                    return v[:4]
+                if index is None:
+                    for v_ in v[:3]:
+                        if regexp is None or re.match(regexp, str(v_)):
+                            return v[:3] + [du]
+                    return v[:4]
+                if regexp is None or re.match(regexp, str(v[index])):
+                    return v[:3] + [du]
+            try:
+                result = _mark_(*doneLevels[i])
+                if result is not None:
+                    return result
+            except KeyError:
+                pass
+            result = _mark_(*doneAll)
+            if result is None:
                 return v[:4]
-            if regexp is None or re.match(regexp, str(v[index])):
-                return v[:3] + [du]
-            return v[:4]
+            return result
 
         def _modify(submodel, i):
             _new = list()

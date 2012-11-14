@@ -310,15 +310,53 @@ class TestModify(ModifyTest):
             ]]
         ]
 
-    def test_done_all_levels_name_by_regexp(self):
+    def test_done_all_levels_comment_by_regexp(self):
         self.addSecondLevel()
         self.addComments()
-        done = ((0, r'test.*[1|3]', True), {})
+        done = ((2, r'test.*[2|3]', True), {})
         result = self.model.modify(done=done)
         assert result == [
             ["testname1", 4, "testcomment1", True, []],
-            ["testname2", 3, "testcomment2", False, [
-                ["testname3", 2, "", True, []],
+            ["testname2", 3, "testcomment2", True, [
+                ["testname3", 2, "", False, []],
+                ["testname4", 3, "", False, []]
+            ]]
+        ]
+
+    def test_done_first_level(self):
+        self.addSecondLevel()
+        done = ((None, None, None), {0: (None, None, True)})
+        result = self.model.modify(done=done)
+        assert result == [
+            ["testname1", 4, "", True, []],
+            ["testname2", 3, "", True, [
+                ["testname3", 2, "", False, []],
+                ["testname4", 3, "", False, []]
+            ]]
+        ]
+
+    def test_done_first_level_by_regexp(self):
+        self.addSecondLevel()
+        self.addComments()
+        done = ((None, None, None), {0: (None, r'test.*[2|3]', True)})
+        result = self.model.modify(done=done)
+        assert result == [
+            ["testname1", 4, "testcomment1", True, []],
+            ["testname2", 3, "testcomment2", True, [
+                ["testname3", 2, "", False, []],
+                ["testname4", 3, "", False, []]
+            ]]
+        ]
+
+    def test_done_first_level_comment_by_regexp(self):
+        self.addSecondLevel()
+        self.addComments()
+        done = ((None, None, None), {0: (2, r'test.*[2|3]', True)})
+        result = self.model.modify(done=done)
+        assert result == [
+            ["testname1", 4, "testcomment1", True, []],
+            ["testname2", 3, "testcomment2", True, [
+                ["testname3", 2, "", False, []],
                 ["testname4", 3, "", False, []]
             ]]
         ]

@@ -196,11 +196,7 @@ class Arg(object):
             return((0, False), {})
 
         def _getReverse(pm):
-            if pm == '+':
-                return True
-            elif pm == '-':
-                return False
-            return None
+            return pm == '+'
 
         def _getIndex(k):
             try:
@@ -240,8 +236,6 @@ class Arg(object):
                 v = done
             else:
                 v = _getReverse(s[-1])
-                if v is None:
-                    pass  # FIXME: raise something? error
             k = s.split(':')
             if len(k) == 1:
                 k = _getIndex(k[0][:-1])

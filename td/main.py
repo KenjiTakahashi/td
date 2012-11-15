@@ -189,16 +189,28 @@ class Arg(object):
                 return int(k)
             except ValueError:
                 pass  # FIXME: raise something? error
+
+        def _getDone(p):
+            v = p.split('=')
+            if len(v) == 2:
+                try:
+                    return (Model.indexes[v[0]], v[1], done)
+                except KeyError:
+                    return None  # FIXME: raise something? error
+            return (None, v[0], done)
         split = ipattern.split(',')
         ipattern1 = split[0].split(':')
         if len(ipattern1) == 1:
             ipattern1 = ipattern1[0]
             try:
-                if len(ipattern1) == 1:
-                    index = 0
+                if done is not None:
+                    ipattern1 = _getDone(ipattern1)
                 else:
-                    index = Model.indexes[ipattern1[:-1]]
-                ipattern1 = (index, _getReverse(ipattern1[-1]))
+                    if len(ipattern1) == 1:
+                        index = 0
+                    else:
+                        index = Model.indexes[ipattern1[:-1]]
+                    ipattern1 = (index, _getReverse(ipattern1[-1]))
                 split = split[1:]
             except KeyError:
                 ipattern1 = None
@@ -219,7 +231,7 @@ class Arg(object):
             elif len(k) == 2:
                 try:
                     if done is not None:
-                        v = (Model.indexes[k[1]], v)
+                        v = _getDone(k[1])
                     else:
                         v = (Model.indexes[k[1][:-1]], v)
                     k = _getIndex(k[0])

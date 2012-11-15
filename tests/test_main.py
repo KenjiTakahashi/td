@@ -46,3 +46,21 @@ class Test_getPattern(object):
     def test_sort_specific_level_by_priority(self):
         result = self.arg._getPattern("1:priority+")
         assert result == (None, {1: (1, True)})
+
+    def test_done_all_by_regexp(self):
+        result = self.arg._getPattern("test.*[1-9]")
+        assert result == ((None, r'test.*[1-9]', True), {})
+
+    def test_done_all_by_comment_regexp(self):
+        result = self.arg._getPattern("comment=test.*[1-9]")
+        assert result == ((2, r'test.*[1-9]', True), {})
+
+    def test_done_specific_level_by_regexp(self):
+        result = self.arg._getPattern("1:test.*[1-9]")
+        assert result == (
+            (None, None, None), {1: (None, r'test.*[1-9]', True)}
+        )
+
+    def test_done_specific_level_by_comment_regexp(self):
+        result = self.arg._getPattern("1:comment=test.*[1-9]")
+        assert result == ((None, None, None), {1: (2, r'test.*[1-9]', True)})

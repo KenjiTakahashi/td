@@ -297,7 +297,7 @@ class Model(UserList):
                 return sorted(_new, key=lambda e: e[index], reverse=reverse)
             except (TypeError, NameError):
                 return _new
-        return _modify(self.data, 0)
+        return _modify(self.data, 1)
 
     @save
     def modifyInPlace(self, *, sort=None, purge=False, done=None):

@@ -175,7 +175,7 @@ class TestModify(ModifyTest):
 
     def test_sort_only_first_level_by_name(self):
         self.addSecondLevel()
-        sort = (None, {0: (0, True)})
+        sort = (None, {1: (0, True)})
         result = self.model.modify(sort=sort)
         assert result == [
             ["testname2", 3, "", False, [
@@ -187,7 +187,7 @@ class TestModify(ModifyTest):
 
     def test_sort_only_first_level_by_priority(self):
         self.addSecondLevel()
-        sort = (None, {0: (1, False)})
+        sort = (None, {1: (1, False)})
         result = self.model.modify(sort=sort)
         assert result == [
             ["testname2", 3, "", False, [
@@ -199,7 +199,7 @@ class TestModify(ModifyTest):
 
     def test_sort_only_second_level_by_name(self):
         self.addSecondLevel()
-        sort = (None, {1: (0, True)})
+        sort = (None, {2: (0, True)})
         result = self.model.modify(sort=sort)
         assert result == [
             ["testname1", 4, "", True, []],
@@ -211,7 +211,7 @@ class TestModify(ModifyTest):
 
     def test_sort_only_second_level_by_priority(self):
         self.addSecondLevel()
-        sort = (None, {1: (1, True)})
+        sort = (None, {2: (1, True)})
         result = self.model.modify(sort=sort)
         assert result == [
             ["testname1", 4, "", True, []],
@@ -256,7 +256,7 @@ class TestModify(ModifyTest):
     def test_sort_first_level_by_name_and_third_level_by_priority(self):
         self.addSecondLevel()
         self.addThirdLevel()
-        sort = (None, {0: (0, True), 2: (1, False)})
+        sort = (None, {1: (0, True), 3: (1, False)})
         result = self.model.modify(sort=sort)
         assert result == [
             ["testname2", 3, "", False, [
@@ -272,7 +272,7 @@ class TestModify(ModifyTest):
     def test_sort_second_level_by_priority_and_rest_by_name(self):
         self.addSecondLevel()
         self.addThirdLevel()
-        sort = ((0, True), {1: (1, True)})
+        sort = ((0, True), {2: (1, True)})
         result = self.model.modify(sort=sort)
         assert result == [
             ["testname2", 3, "", False, [
@@ -325,7 +325,7 @@ class TestModify(ModifyTest):
 
     def test_done_first_level(self):
         self.addSecondLevel()
-        done = ((None, None, None), {0: (None, None, True)})
+        done = ((None, None, None), {1: (None, None, True)})
         result = self.model.modify(done=done)
         assert result == [
             ["testname1", 4, "", True, []],
@@ -338,7 +338,7 @@ class TestModify(ModifyTest):
     def test_done_first_level_by_regexp(self):
         self.addSecondLevel()
         self.addComments()
-        done = ((None, None, None), {0: (None, r'test.*[2|3]', True)})
+        done = ((None, None, None), {1: (None, r'test.*[2|3]', True)})
         result = self.model.modify(done=done)
         assert result == [
             ["testname1", 4, "testcomment1", True, []],
@@ -351,7 +351,7 @@ class TestModify(ModifyTest):
     def test_done_first_level_comment_by_regexp(self):
         self.addSecondLevel()
         self.addComments()
-        done = ((None, None, None), {0: (2, r'test.*[2|3]', True)})
+        done = ((None, None, None), {1: (2, r'test.*[2|3]', True)})
         result = self.model.modify(done=done)
         assert result == [
             ["testname1", 4, "testcomment1", True, []],

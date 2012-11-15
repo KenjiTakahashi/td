@@ -16,12 +16,27 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import logging
 from td.main import Arg
+
+
+class HandlerMock(logging.Handler):
+    def __init__(self):
+        super(HandlerMock, self).__init__()
+        self.message = None
+
+    def emit(self, record):
+        self.message = record.msg
+
+    def assertLogged(self, message):
+        assert self.message == message
 
 
 class Test_getPattern(object):
     def setUp(self):
         self.arg = Arg.__new__(Arg)  # Don't do this at home
+        self.handler = HandlerMock()
+        logging.getLogger('td').addHandler(self.handler)
 
     def test_sort_all_levels(self):
         result = self.arg._getPattern(True)
@@ -62,3 +77,23 @@ class Test_getPattern(object):
     def test_done_specific_level_by_comment_regexp(self):
         result = self.arg._getPattern("1:comment=test.*[1-9]", done=True)
         assert result == (None, {1: (2, r'test.*[1-9]', True)})
+
+    def test_passing_invalid_level_without_index(self):
+        self.arg._getPattern("a+")
+        self.handler.assertLogged('Invalid level number: a')
+
+    def test_passing_invalid_level_with_index(self):
+        self.arg._getPattern("a:name+")
+        self.handler.assertLogged('Invalid level number: a')
+
+    def test_passing_invalid_index_name(self):
+        self.arg._getPattern("1:nema+")
+        self.handler.assertLogged('Invalid field name: nema')
+
+    def test_passing_too_much_data(self):
+        self.arg._getPattern("1:name:sth")
+        self.handler.assertLogged('Unrecognized token in: 1:name:sth')
+
+    def test_passing_invalid_index_name_with_done(self):
+        self.arg._getPattern("nema=.*", done=True)
+        self.handler.assertLogged('Invalid field name: nema')

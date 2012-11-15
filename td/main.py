@@ -18,12 +18,29 @@
 
 import sys
 import readline
+import logging
 from argparse import ArgumentParser
 import colorama
 from td.model import Model
 
 
 __version__ = '0.1'
+
+
+class InvalidPatternError(Exception):
+    def __init__(self, k, msg):
+        self.message = "{0}: {1}".format(msg, k)
+
+
+def logs(func):
+    logger = logging.getLogger('td')
+
+    def _logs(self, *args, **kwargs):
+        try:
+            return func(self, *args, **kwargs)
+        except InvalidPatternError as e:
+            logger.error(e.message)
+    return _logs
 
 
 class View(object):
@@ -164,6 +181,7 @@ class Arg(object):
         args = self.arg.parse_args()
         args.func(args)
 
+    @logs
     def _getPattern(self, ipattern, done=None):
         """Parses sort pattern.
 
@@ -188,7 +206,7 @@ class Arg(object):
             try:
                 return int(k)
             except ValueError:
-                pass  # FIXME: raise something? error
+                raise InvalidPatternError(k, "Invalid level number")
 
         def _getDone(p):
             v = p.split('=')
@@ -196,7 +214,7 @@ class Arg(object):
                 try:
                     return (Model.indexes[v[0]], v[1], done)
                 except KeyError:
-                    return None  # FIXME: raise something? error
+                    raise InvalidPatternError(v[0], 'Invalid field name')
             return (None, v[0], done)
         split = ipattern.split(',')
         ipattern1 = split[0].split(':')
@@ -235,10 +253,10 @@ class Arg(object):
                     else:
                         v = (Model.indexes[k[1][:-1]], v)
                     k = _getIndex(k[0])
-                except IndexError:
-                    pass  # FIXME: raise something? error
+                except KeyError:
+                    raise InvalidPatternError(k[1][:-1], 'Invalid field name')
             else:
-                pass  # FIXME: raise something? error
+                raise InvalidPatternError(s, 'Unrecognized token in')
             ipattern2[k] = v
         return (ipattern1, ipattern2)
 

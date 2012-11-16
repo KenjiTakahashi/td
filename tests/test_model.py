@@ -17,6 +17,7 @@
 
 
 import os
+import json
 from td.main import Model
 
 
@@ -28,8 +29,21 @@ class ModelTest(object):
     def tearDown(self):
         try:
             os.remove(os.path.join(self.model.path, '.td'))
+            os.remove(os.path.join(self.model.path, '.td~'))
         except OSError:
             pass
+
+
+class TestBackup(ModelTest):
+    def test_should_create_backup_when_file_exists(self):
+        self.model.add("testname1")
+        self.model.add("testname2")
+        path = os.path.join(self.model.path, '.td~')
+        assert os.path.exists(path)
+        assert json.loads(open(path).read()) == {
+            'items': [["testname1", 3, "", False, []]],
+            'refs': {}
+        }
 
 
 class TestAdd(ModelTest):

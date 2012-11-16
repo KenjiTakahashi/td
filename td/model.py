@@ -17,6 +17,7 @@
 
 
 import os
+import shutil
 import json
 import re
 from collections import UserList
@@ -82,7 +83,10 @@ def save(func):
     def aux(self, *args, **kwargs):
         out = func(self, *args, **kwargs)
         path = hasattr(self, 'path') and self.path or os.getcwd()
-        open(os.path.join(path, '.td'), 'w').write(
+        npath = os.path.join(path, '.td')
+        if os.path.exists(npath):
+            shutil.copy2(npath, os.path.join(path, '.td~'))
+        open(npath, 'w').write(
             json.dumps({'items': self.data, 'refs': self.refs})
         )
         return out

@@ -62,6 +62,10 @@ class Test_getPattern(object):
         result = self.arg._getPattern("1:priority+")
         assert result == (None, {1: (1, True)})
 
+    def test_done_all(self):
+        result = self.arg._getPattern(".*", done=True)
+        assert result == ((None, r'.*', True), {})
+
     def test_done_all_by_regexp(self):
         result = self.arg._getPattern("test.*[1-9]", done=True)
         assert result == ((None, r'test.*[1-9]', True), {})

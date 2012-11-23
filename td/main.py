@@ -115,10 +115,12 @@ class Arg(object):
             '-p', '--purge', action='store_true', help="hide completed items"
         )
         view.add_argument(
-            '-d', '--done', nargs='?', help="show all items as done"
+            '-d', '--done', nargs='?', const=r'.*',
+            help="show all items as done"
         )
         view.add_argument(
-            '-D', '--undone', nargs='?', help="show all items as not done"
+            '-D', '--undone', nargs='?', const=r'.*',
+            help="show all items as not done"
         )
         view.set_defaults(func=self.view)
 
@@ -133,10 +135,12 @@ class Arg(object):
             help="remove completed items"
         )
         modify.add_argument(
-            '-d', '--done', nargs='?', help="mark all items as done"
+            '-d', '--done', nargs='?', const=r'.*',
+            help="mark all items as done"
         )
         modify.add_argument(
-            '-D', '--undone', nargs='?', help="mark all items as not done"
+            '-D', '--undone', nargs='?', const=r'.*',
+            help="mark all items as not done"
         )
         modify.set_defaults(func=self.modify)
 
@@ -178,6 +182,27 @@ class Arg(object):
         undone.add_argument('index', help="index of the item to unmark")
         undone.set_defaults(func=self.undone)
 
+        options = subparsers.add_parser(
+            'o', aliases=['options'], help="change global options"
+        )
+        options.add_argument(
+            '-s', '--sort', nargs='?', const=True,
+            help="set option to sort the database"
+        )
+        options.add_argument(
+            '-p', '--purge', action='store_true',
+            help="set option to remove completed items"
+        )
+        options.add_argument(
+            '-d', '--done', nargs='?', const=r'.*',
+            help="set option to mark all items as done"
+        )
+        options.add_argument(
+            '-D', '--undone', nargs='?', const=r'.*',
+            help="set option to mark all items as not done"
+        )
+        options.set_defaults(func=self.options)
+
         args = self.arg.parse_args()
         args.func(args)
 
@@ -186,14 +211,15 @@ class Arg(object):
         """Parses sort pattern.
 
         :ipattern: A pattern to parse.
-        :done: @todo
+        :done:  If :ipattern: refers to done|undone,
+        use this to indicate proper state.
         :returns: A pattern suitable for Model.modify.
 
         """
         if ipattern is None:
             return None
         if ipattern is True:
-            return((0, False), {})
+            return ((0, False), {})
 
         def _getReverse(pm):
             return pm == '+'
@@ -254,6 +280,18 @@ class Arg(object):
             ipattern2[k] = v
         return (ipattern1, ipattern2)
 
+    def _getDone(self, args):
+        """Parses the done|undone state.
+
+        :args: Arguments passed to the command.
+        :returns: Pattern for done|undone or None if neither were specified.
+
+        """
+        if args.done:
+            return self._getPattern(args.done, True)
+        if args.undone:
+            return self._getPattern(args.undone, False)
+
     def view(self, args):
         """Handles the 'v' command.
 
@@ -262,7 +300,8 @@ class Arg(object):
         """
         View(self.model.modify(
             sort=self._getPattern(args.sort),
-            purge=args.purge
+            purge=args.purge,
+            done=self._getDone(args)
         ))
 
     def modify(self, args):
@@ -273,7 +312,8 @@ class Arg(object):
         """
         self.model.modifyInPlace(
             sort=self._getPattern(args.sort),
-            purge=args.purge
+            purge=args.purge,
+            done=self._getDone(args)
         )
 
     def add(self, args):
@@ -327,6 +367,18 @@ class Arg(object):
         """
         if self.model.exists(args.index):
             self.model.edit(args.index, done=False)
+
+    def options(self, args):
+        """Handles the 'o' command.
+
+        :args: Arguments supplied to the 'o' command.
+
+        """
+        self.model.setOptions(
+            sort=self._getPattern(args.sort),
+            purge=args.purge,
+            done=self._getDone(args)
+        )
 
     def getKwargs(self, args, values={}):
         """Gets necessary data from stdin.

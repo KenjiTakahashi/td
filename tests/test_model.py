@@ -42,7 +42,8 @@ class TestBackup(ModelTest):
         assert os.path.exists(path)
         assert json.loads(open(path).read()) == {
             'items': [["testname1", 3, "", False, []]],
-            'refs': {}
+            'refs': {},
+            'options': {}
         }
 
 

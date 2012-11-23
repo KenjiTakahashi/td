@@ -55,7 +55,7 @@ def devtodo(path):
             return _data
         data = _build(tree)
         open(os.path.join(path, '.td'), 'w').write(
-            json.dumps({'items': data, 'refs': dict()})
+            json.dumps({'items': data, 'refs': dict(), 'options': dict()})
         )
         return data
 
@@ -71,9 +71,11 @@ def load(func):
             if data is not None:
                 self[:] = data
             self.refs = dict()
+            self.options = dict()
         else:
             self[:] = data['items']
             self.refs = data['refs']
+            self.options = data['options']
         return func(self, *args, **kwargs)
     return aux
 
@@ -86,8 +88,17 @@ def save(func):
         npath = os.path.join(path, '.td')
         if os.path.exists(npath):
             shutil.copy2(npath, os.path.join(path, '.td~'))
+        self._modifyInternal(
+            sort=self.options.get('sort'),
+            purge=self.options.get('purge'),
+            done=self.options.get('done')
+        )
         open(npath, 'w').write(
-            json.dumps({'items': self.data, 'refs': self.refs})
+            json.dumps({
+                'items': self.data,
+                'refs': self.refs,
+                'options': self.options
+            })
         )
         return out
     return aux
@@ -238,8 +249,7 @@ class Model(UserList):
             data = data[i][4]
         return [index[:-2] or ""] + data[int(index[-1]) - 1]
 
-    @load
-    def modify(self, *, sort=None, purge=False, done=None):
+    def _modifyInternal(self, *, sort=None, purge=False, done=None):
         """Creates a whole new database from existing one, based on given
         modifiers.
 
@@ -303,11 +313,22 @@ class Model(UserList):
                 return _new
         return _modify(self.data, 1)
 
+    @load
+    def modify(self, *, sort=None, purge=False, done=None):
+        """Calls _modifyInternal after loading the database."""
+        return self._modifyInternal(sort=sort, purge=purge, done=done)
+
     @save
     def modifyInPlace(self, *, sort=None, purge=False, done=None):
         """Like Model.modify, but changes existing database instead of
-        returning the new one."""
+        returning a new one."""
         self.data = self.modify(sort=sort, purge=purge, done=done)
+
+    def setOptions(self, *, sort=None, purge=False, done=None):
+        """Set option(s). Arguments like in Model.modify."""
+        self.options['sort'] = sort
+        self.options['purge'] = purge
+        self.options['done'] = done
 
     @load
     def __iter__(self):

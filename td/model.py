@@ -81,14 +81,18 @@ def load(func):
 
 
 def save(func):
-    """@decorator: Saves data after executing :func:."""
+    """@decorator: Saves data after executing :func:.
+
+    Also performs modifications set as permanent options.
+
+    """
     def aux(self, *args, **kwargs):
         out = func(self, *args, **kwargs)
         path = hasattr(self, 'path') and self.path or os.getcwd()
         npath = os.path.join(path, '.td')
         if os.path.exists(npath):
             shutil.copy2(npath, os.path.join(path, '.td~'))
-        self._modifyInternal(
+        self.data = self._modifyInternal(
             sort=self.options.get('sort'),
             purge=self.options.get('purge'),
             done=self.options.get('done')
@@ -105,7 +109,12 @@ def save(func):
 
 
 class Model(UserList):
-    """Docstring for Model """
+    """A holder for all the td data.
+
+    It keeps the actual data, the references and permanent options and
+    provides an interface to manipulate them.
+
+    """
 
     indexes = {
         "name": 0,
@@ -262,6 +271,9 @@ class Model(UserList):
         :done: pattern looks similar to :sort:, except that it has additional
         <regexp> values and that True|False means to mark as done|undone.
 
+        @note: Should not be used directly, it was defined here, because
+        :save: decorator needs undecorated version of Model.modify.
+
         :sort: Pattern on which to sort the database.
         :purge: Whether to purge done items.
         :done: Pattern on which to mark items as done/undone.
@@ -324,6 +336,8 @@ class Model(UserList):
         returning a new one."""
         self.data = self.modify(sort=sort, purge=purge, done=done)
 
+    @save
+    @load
     def setOptions(self, *, sort=None, purge=False, done=None):
         """Set option(s). Arguments like in Model.modify."""
         self.options['sort'] = sort

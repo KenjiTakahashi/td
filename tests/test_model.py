@@ -76,7 +76,7 @@ class TestRemove(ModelTest):
 
 class TestEdit(ModelTest):
     def setUp(self):
-        super(TestEdit, self).setUp()
+        super().setUp()
         self.model.add("testname")
 
     def test_edit_name(self):
@@ -140,7 +140,7 @@ class TestExists(ModelTest):
 
 class TestGet(ModelTest):
     def setUp(self):
-        super(TestGet, self).setUp()
+        super().setUp()
         self.model.add("testname")
 
     def test_get_top_level_item(self):
@@ -153,13 +153,11 @@ class TestGet(ModelTest):
 
 class ModifyTest(ModelTest):
     def setUp(self):
-        super(ModifyTest, self).setUp()
+        super().setUp()
         self.model.add("testname1", priority=4)
         self.model.add("testname2")
         self.model.edit("1", done=True)
 
-
-class TestModify(ModifyTest):
     def addSecondLevel(self):
         self.model.add("testname3", priority=2, parent="2")
         self.model.add("testname4", parent="2")
@@ -172,6 +170,8 @@ class TestModify(ModifyTest):
         self.model.edit("1", comment="testcomment1")
         self.model.edit("2", comment="testcomment2")
 
+
+class TestModify(ModifyTest):
     def test_purge_done_when_enabled(self):
         result = self.model.modify(purge=True)
         assert result == [["testname2", 3, "", False, []]]
@@ -384,3 +384,53 @@ class TestModifyInPlace(ModifyTest):
         # see TestModify for different options tests.
         self.model.modifyInPlace(purge=True)
         assert self.model == [["testname2", 3, "", False, []]]
+
+
+class TestOptions(ModifyTest):
+    def setUp(self):
+        super().setUp()
+        self.addSecondLevel()
+        self.addThirdLevel()
+
+    def getNewModel(self):
+        model = Model()
+        model.setPath(os.path.join(os.getcwd(), 'tests'))
+        return model
+
+    def test_sort(self):
+        self.model.setOptions(sort=((1, False), {}))
+        assert list(self.getNewModel()) == [
+            ["testname2", 3, "", False, [
+                ["testname3", 2, "", False, [
+                    ["testname6", 2, "", False, []],
+                    ["testname5", 3, "", False, []]
+                ]],
+                ["testname4", 3, "", False, []]
+            ]],
+            ["testname1", 4, "", True, []]
+        ]
+
+    def test_purge(self):
+        self.model.setOptions(purge=True)
+        assert list(self.getNewModel()) == [
+            ["testname2", 3, "", False, [
+                ["testname3", 2, "", False, [
+                    ["testname5", 3, "", False, []],
+                    ["testname6", 2, "", False, []]
+                ]],
+                ["testname4", 3, "", False, []]
+            ]]
+        ]
+
+    def test_done(self):
+        self.model.setOptions(done=((None, None, True), {}))
+        assert list(self.getNewModel()) == [
+            ["testname1", 4, "", True, []],
+            ["testname2", 3, "", True, [
+                ["testname3", 2, "", True, [
+                    ["testname5", 3, "", True, []],
+                    ["testname6", 2, "", True, []]
+                ]],
+                ["testname4", 3, "", True, []]
+            ]]
+        ]

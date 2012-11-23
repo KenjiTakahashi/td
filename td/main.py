@@ -115,11 +115,11 @@ class Arg(object):
             '-p', '--purge', action='store_true', help="hide completed items"
         )
         view.add_argument(
-            '-d', '--done', nargs='?', const=r'.*',
+            '-d', '--done', nargs='?', const=True,
             help="show all items as done"
         )
         view.add_argument(
-            '-D', '--undone', nargs='?', const=r'.*',
+            '-D', '--undone', nargs='?', const=True,
             help="show all items as not done"
         )
         view.set_defaults(func=self.view)
@@ -135,11 +135,11 @@ class Arg(object):
             help="remove completed items"
         )
         modify.add_argument(
-            '-d', '--done', nargs='?', const=r'.*',
+            '-d', '--done', nargs='?', const=True,
             help="mark all items as done"
         )
         modify.add_argument(
-            '-D', '--undone', nargs='?', const=r'.*',
+            '-D', '--undone', nargs='?', const=True,
             help="mark all items as not done"
         )
         modify.set_defaults(func=self.modify)
@@ -194,11 +194,11 @@ class Arg(object):
             help="set option to remove completed items"
         )
         options.add_argument(
-            '-d', '--done', nargs='?', const=r'.*',
+            '-d', '--done', nargs='?', const=True,
             help="set option to mark all items as done"
         )
         options.add_argument(
-            '-D', '--undone', nargs='?', const=r'.*',
+            '-D', '--undone', nargs='?', const=True,
             help="set option to mark all items as not done"
         )
         options.set_defaults(func=self.options)
@@ -219,6 +219,8 @@ class Arg(object):
         if ipattern is None:
             return None
         if ipattern is True:
+            if done is not None:
+                return ((None, None, done), {})
             return ((0, False), {})
 
         def _getReverse(pm):

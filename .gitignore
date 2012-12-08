@@ -1,0 +1,7 @@
+*~
+*pyc
+*swp
+releases/*
+dist/*
+build/*
+.td

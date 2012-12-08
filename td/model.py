@@ -271,7 +271,7 @@ class Model(UserList):
         :done: pattern looks similar to :sort:, except that it has additional
         <regexp> values and that True|False means to mark as done|undone.
 
-        @note: Should not be used directly, it was defined here, because
+        @note: Should not be used directly. It was defined here, because
         :save: decorator needs undecorated version of Model.modify.
 
         :sort: Pattern on which to sort the database.
@@ -327,7 +327,7 @@ class Model(UserList):
 
     @load
     def modify(self, *, sort=None, purge=False, done=None):
-        """Calls _modifyInternal after loading the database."""
+        """Calls Model._modifyInternal after loading the database."""
         return self._modifyInternal(sort=sort, purge=purge, done=done)
 
     @save
@@ -346,7 +346,7 @@ class Model(UserList):
 
     @load
     def __iter__(self):
-        return super(Model, self).__iter__()
+        return super().__iter__()
 
     def _split(self, index):
         """Splits :index: by '.', removing empty strings.

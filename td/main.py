@@ -86,7 +86,10 @@ class View(object):
 
 
 class Arg(object):
-    """Docstring for Arg """
+    """Handles everything related to command line arguments parsing,
+    patterns decoding and calling appropriate view/model manipulation methods.
+
+    """
 
     def __init__(self, model):
         """Creates new Arg instance.

@@ -147,9 +147,13 @@ class Arg(object):
         )
         modify.set_defaults(func=self.modify)
 
-        add = subparsers.add_parser('a', aliases=['add'], help="add new item")
-        add.add_argument(
-            '--parent', help="parent index (omit to add top-level item)"
+        add_parent = ArgumentParser(add_help=False)
+        add_parent.add_argument(
+            'parent', nargs='?',
+            help="parent index (omit to add top-level item)"
+        )
+        add = subparsers.add_parser(
+            'a', aliases=['add'], parents=[add_parent], help="add new item"
         )
         add.add_argument('-n', '--name')
         add.add_argument('-p', '--priority', type=int)
@@ -390,7 +394,7 @@ class Arg(object):
 
         @note: Also displays error message when no item name is set.
 
-        :args: Arguments supplited with command line.
+        :args: Arguments supplied in command line.
         :values: Default values dictionary, supplied for editing.
         :returns: A dictionary containing data gathered from stdin.
 

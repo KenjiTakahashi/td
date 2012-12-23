@@ -16,7 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from setuptools import setup
+from distutils.core import setup
 from td.main import __version__
 
 
@@ -34,9 +34,14 @@ setup(
     ],
     scripts=['scripts/td'],
     classifiers=[f.strip() for f in """
-    License :: OSI Approved :: GNU General Public License (GPL)
+    Development Status :: 4 - Beta
+    Environment :: Console
+    Intended Audience :: Developers
+    Intended Audience :: End Users/Desktop
+    License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)
     Natural Language :: English
     Operating System :: OS Independent
     Programming Language :: Python :: 3
+    Topic :: Utilities
     """.splitlines() if f.strip()]
 )

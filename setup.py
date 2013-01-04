@@ -33,6 +33,7 @@ setup(
         'td'
     ],
     scripts=['scripts/td'],
+    requires=['colorama'],
     classifiers=[f.strip() for f in """
     Development Status :: 4 - Beta
     Environment :: Console

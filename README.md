@@ -6,7 +6,7 @@ Heavily inspired by [devtodo][devtodo], but with some nasty features, like:
 * Sorting/Filtering specific levels only.
 * Persistent sort/filter/view options.
 * Written in pure Python (it even has docstrings).
-* Tests (**place travis here**).
+* Tests ([![Build Status](https://travis-ci.org/KenjiTakahashi/td.png?branch=master)](https://travis-ci.org/KenjiTakahashi/td)).
 
 Oh, and it will automagically pick up your existing [devtodo][devtodo] lists!
 

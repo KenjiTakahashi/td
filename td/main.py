@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # This is a part of td @ http://github.com/KenjiTakahashi/td
-# Karol "Kenji Takahashi" Woźniak © 2012
+# Karol "Kenji Takahashi" Woźniak © 2012 - 2013
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -357,7 +357,7 @@ class Arg(object):
 
         """
         if self.model.exists(args.index):
-            self.model.rm(args.index)
+            self.model.remove(args.index)
 
     def done(self, args):
         """Handles the 'd' command.
@@ -432,9 +432,17 @@ class Arg(object):
         readline.set_startup_hook()
         if field == 'priority':
             try:
-                return int(value)
+                value = int(value)
             except ValueError:
-                return None
+                if value == '':
+                    return None
+                print("Invalid priority value!")
+                exit(0)
+            else:
+                if value not in [1, 2, 3, 4, 5]:
+                    print("Invalid priority value!")
+                    exit(0)
+                return value
         return value
 
 

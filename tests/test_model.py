@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # This is a part of td @ http://github.com/KenjiTakahashi/td
-# Karol "Kenji Takahashi" Woźniak © 2012
+# Karol "Kenji Takahashi" Woźniak © 2012 - 2013
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -117,6 +117,19 @@ class TestEdit(ModelTest):
                 ["testname2", 3, "", False, []]
             ]],
             ["testname3", 3, "", False, []]
+        ]
+
+    def test_reparent_deeply_nested_item_to_same_parent(self):
+        # corner case
+        self.model.add("testname2", parent="1")
+        self.model.add("testname3", parent="1.1")
+        self.model.edit("1.1.1", parent="1.1")
+        assert self.model == [
+            ["testname", 3, "", False, [
+                ["testname2", 3, "", False, [
+                    ["testname3", 3, "", False, []]
+                ]]
+            ]]
         ]
 
 

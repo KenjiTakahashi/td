@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # This is a part of td @ http://github.com/KenjiTakahashi/td
-# Karol "Kenji Takahashi" Woźniak © 2012
+# Karol "Kenji Takahashi" Woźniak © 2012 - 2013
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -195,8 +195,8 @@ class Model(UserList):
             else:
                 parentitem = self.data
                 for c in self._split(parent):
-                    parentitem = parentitem[int(c) - 1]
-                parentitem[4].append(item)
+                    parentitem = parentitem[int(c) - 1][4]
+                parentitem.append(item)
             parent = index[:-1]
             parentitem = self.data
             for c in parent:

@@ -5,3 +5,4 @@ releases/*
 dist/*
 build/*
 .td
+*.egg-info/

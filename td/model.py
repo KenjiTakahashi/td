@@ -221,7 +221,7 @@ class Model(UserList):
                 try:
                     del data[i]
                 except IndexError:
-                    pass  # logger
+                    pass  # TODO(Kenji): logger
             else:
                 data = data[i][4]
 
@@ -238,7 +238,7 @@ class Model(UserList):
             for c in self._split(index):
                 i = int(c) - 1
                 data = data[i][4]
-        except:
+        except Exception:
             return False
         return True
 

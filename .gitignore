@@ -5,4 +5,6 @@ releases/*
 dist/*
 build/*
 .td
+.coverage
 *.egg-info/
+td_example

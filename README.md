@@ -6,7 +6,7 @@ Heavily inspired by [devtodo][devtodo], but with some nasty features, like:
 * Sorting/Filtering specific levels only.
 * Persistent sort/filter/view options.
 * Written in pure Python (it even has docstrings).
-* Tests ([![Build Status](https://travis-ci.org/KenjiTakahashi/td.png?branch=master)](https://travis-ci.org/KenjiTakahashi/td)).
+* Tests ([![Build Status](https://travis-ci.org/KenjiTakahashi/td.png?branch=master)](https://travis-ci.org/KenjiTakahashi/td)[![Coverage](https://coveralls.io/repos/KenjiTakahashi/td/badge.png?branch=master)](https://coveralls.io/r/KenjiTakahashi/td)).
 
 Oh, and it will automagically pick up your existing [devtodo][devtodo] lists!
 

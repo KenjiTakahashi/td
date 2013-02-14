@@ -5,7 +5,7 @@ python:
 install:
   - pip install colorama
   - pip install coverage
-  - pip install python-coveralls
+  - pip install coveralls
   - pip install . --use-mirrors
 script:
   - nosetests --with-coverage --cover-package=td

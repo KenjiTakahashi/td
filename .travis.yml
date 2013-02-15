@@ -3,11 +3,11 @@ python:
   - "3.2"
   - "3.3"
 install:
-  - pip install colorama
   - pip install coverage
   - pip install coveralls
   - pip install . --use-mirrors
 script:
-  - nosetests --with-coverage --cover-package=td
-after_success:
-  - coveralls
+  - coverage run --source=td setup.py -q nosetests
+  - coverage report -m
+after_script:
+  - coveralls --verbose

@@ -77,7 +77,7 @@ All view, modify and options commands have exactly the same interface, but:
 
 * v(iew) is temporary, which means that changes affect only one session and are then gone,
 * m(odify) is permanent, which means that the changes made are saved to disk,
-* o(ptions) sets persistent modifiers, which will be applied on every future change.
+* o(ptions) sets persistent modifiers, which will be applied on every future change. Also has a `-g` switch, which stores options globally (in `~/.tdrc`). They are then used if there are no local options.
 
 **sort**
 

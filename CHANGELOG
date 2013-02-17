@@ -3,3 +3,4 @@
 
 == 0.2:
 - Edit is stable (i.e. doesn't move items unless necessary).
+- Global options stored in ~/.tdrc.

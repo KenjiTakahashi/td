@@ -64,6 +64,10 @@ def load(func):
     """@decorator: Loads data before executing :func:."""
     def aux(self, *args, **kwargs):
         path = hasattr(self, 'path') and self.path or os.getcwd()
+        if hasattr(self, 'gpath'):
+            gpath = self.gpath
+        else:
+            gpath = os.path.expanduser('~/.tdrc')
         try:
             data = json.loads(open(os.path.join(path, '.td')).read())
         except IOError:
@@ -76,6 +80,10 @@ def load(func):
             self[:] = data['items']
             self.refs = data['refs']
             self.options = data['options']
+        try:
+            self.globalOptions = json.loads(open(gpath).read())
+        except IOError:
+            self.globalOptions = dict()
         return func(self, *args, **kwargs)
     return aux
 
@@ -90,12 +98,16 @@ def save(func):
         out = func(self, *args, **kwargs)
         path = hasattr(self, 'path') and self.path or os.getcwd()
         npath = os.path.join(path, '.td')
+        if hasattr(self, 'gpath'):
+            gpath = self.gpath
+        else:
+            gpath = os.path.expanduser('~/.tdrc')
         if os.path.exists(npath):
             shutil.copy2(npath, os.path.join(path, '.td~'))
         self.data = self._modifyInternal(
-            sort=self.options.get('sort'),
-            purge=self.options.get('purge'),
-            done=self.options.get('done')
+            sort=self.options.get('sort') or self.globalOptions.get('sort'),
+            purge=self.options.get('purge') or self.globalOptions.get('purge'),
+            done=self.options.get('done') or self.globalOptions.get('done')
         )
         open(npath, 'w').write(
             json.dumps({
@@ -104,6 +116,7 @@ def save(func):
                 'options': self.options
             })
         )
+        open(gpath, 'w').write(json.dumps(self.globalOptions))
         return out
     return aux
 
@@ -280,10 +293,8 @@ class Model(UserList):
         :returns: New database, modified according to supplied arguments.
 
         """
-        if sort is not None:
-            sortAll, sortLevels = sort
-        if done is not None:
-            doneAll, doneLevels = done
+        sortAll, sortLevels = sort is not None and sort or (None, None)
+        doneAll, doneLevels = done is not None and done or (None, None)
 
         def _mark(v, i):
             if done is None:
@@ -321,7 +332,7 @@ class Model(UserList):
             try:
                 index, reverse = sortLevels.get(i) or sortAll
                 return sorted(_new, key=lambda e: e[index], reverse=reverse)
-            except (TypeError, NameError):
+            except (TypeError, AttributeError):
                 return _new
         return _modify(self.data, 1)
 
@@ -338,11 +349,20 @@ class Model(UserList):
 
     @save
     @load
-    def setOptions(self, *, sort=None, purge=False, done=None):
-        """Set option(s). Arguments like in Model.modify."""
-        self.options['sort'] = sort
-        self.options['purge'] = purge
-        self.options['done'] = done
+    def setOptions(self, glob=False, *, sort=None, purge=False, done=None):
+        """Set option(s). Arguments like in Model.modify.
+
+        :glob: If True, stores specified options globally.
+
+        """
+        if glob:
+            self.globalOptions['sort'] = sort
+            self.globalOptions['purge'] = purge
+            self.globalOptions['done'] = done
+        else:
+            self.options['sort'] = sort
+            self.options['purge'] = purge
+            self.options['done'] = done
 
     @load
     def __iter__(self):

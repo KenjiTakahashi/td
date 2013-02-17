@@ -24,12 +24,15 @@ from td.main import Model
 class ModelTest(object):
     def setUp(self):
         self.model = Model()
-        self.model.setPath(os.path.join(os.getcwd(), 'tests'))
+        path = os.path.join(os.getcwd(), 'tests')
+        self.model.setPath(path)
+        self.model.gpath = os.path.join(path, '.tdrc')
 
     def tearDown(self):
         try:
             os.remove(os.path.join(self.model.path, '.td'))
             os.remove(os.path.join(self.model.path, '.td~'))
+            os.remove(self.model.gpath)
         except OSError:
             pass
 
@@ -454,5 +457,35 @@ class TestOptions(ModifyTest):
                     ["testname6", 2, "", True, []]
                 ]],
                 ["testname4", 3, "", True, []]
+            ]]
+        ]
+
+    def test_global_only(self):
+        self.model.setOptions(glob=True, sort=((1, False), {}))
+        assert list(self.getNewModel()) == [
+            ["testname2", 3, "", False, [
+                ["testname3", 2, "", False, [
+                    ["testname6", 2, "", False, []],
+                    ["testname5", 3, "", False, []]
+                ]],
+                ["testname4", 3, "", False, []]
+            ]],
+            ["testname1", 4, "", True, []]
+        ]
+
+    def test_local_before_global(self):
+        self.model.add("testname10")
+        self.model.edit("1", name="testname11")
+        self.model.setOptions(sort=((0, False), {}))
+        self.model.setOptions(glob=True, sort=((0, True), {}))
+        assert list(self.getNewModel()) == [
+            ["testname10", 3, "", False, []],
+            ["testname11", 4, "", True, []],
+            ["testname2", 3, "", False, [
+                ["testname3", 2, "", False, [
+                    ["testname5", 3, "", False, []],
+                    ["testname6", 2, "", False, []]
+                ]],
+                ["testname4", 3, "", False, []]
             ]]
         ]

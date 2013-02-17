@@ -190,7 +190,11 @@ class Arg(object):
         undone.set_defaults(func=self.undone)
 
         options = subparsers.add_parser(
-            'o', aliases=['options'], help="change global options"
+            'o', aliases=['options'], help="change options"
+        )
+        options.add_argument(
+            '-g', '--global', dest='glob', action="store_true",
+            help="Store specified options globally"
         )
         options.add_argument(
             '-s', '--sort', nargs='?', const=True,
@@ -384,6 +388,7 @@ class Arg(object):
 
         """
         self.model.setOptions(
+            glob=args.glob,
             sort=self._getPattern(args.sort),
             purge=args.purge,
             done=self._getDone(args)

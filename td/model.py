@@ -175,8 +175,11 @@ class Model(UserList):
         :parent: New parent.
 
         """
-        item = self.data
+        if parent == -1:
+            parent = ''
+        parent = self._split(parent)
         index = self._split(index)
+        item = self.data
         for j, c in enumerate(index):
             item = item[int(c) - 1]
             if j + 1 != len(index):
@@ -189,14 +192,11 @@ class Model(UserList):
             item[2] = comment
         if done is not None:
             item[3] = done
-        if parent is not None and parent != '':
-            if parent == -1:
-                self.append(item)
-            else:
-                parentitem = self.data
-                for c in self._split(parent):
-                    parentitem = parentitem[int(c) - 1][4]
-                parentitem.append(item)
+        if parent is not None and parent != index[:-1]:
+            parentitem = self.data
+            for c in parent:
+                parentitem = parentitem[int(c) - 1][4]
+            parentitem.append(item)
             parent = index[:-1]
             parentitem = self.data
             for c in parent:
@@ -351,10 +351,14 @@ class Model(UserList):
     def _split(self, index):
         """Splits :index: by '.', removing empty strings.
 
+        If None is supplied, None is returned.
+
         :index: Index to split.
         :returns: :index: split by '.' or empty list, if there are no items.
 
         """
+        if index is None:
+            return None
         split = index.split('.')
         if split == ['']:
             return []

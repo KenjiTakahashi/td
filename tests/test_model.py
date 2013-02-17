@@ -132,6 +132,15 @@ class TestEdit(ModelTest):
             ]]
         ]
 
+    def test_edit_stability(self):
+        # edit shouldn't move items around if not necessary
+        self.model.add("testname2")
+        self.model.edit("1", name="testname1", parent=-1)
+        assert self.model == [
+            ["testname1", 3, "", False, []],
+            ["testname2", 3, "", False, []]
+        ]
+
 
 class TestExists(ModelTest):
     def test_existing_top_level_index(self):

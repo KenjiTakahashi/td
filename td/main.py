@@ -36,7 +36,7 @@ class InvalidPatternError(Exception):
 
 
 class View(object):
-    """Docstring for View """
+    """Class used to display items on the screen."""
 
     def __init__(self, model, **opts):
         """Creates new View instance.
@@ -77,29 +77,14 @@ class View(object):
         _show(model, 0)
 
 
-class Arg(object):
-    """Handles everything related to command line arguments parsing,
-    patterns decoding and calling appropriate view/model manipulation methods.
+class ParserMixin(object):
+    """Mixin class holding init methods for different parts of the paser."""
+    def initView(self, subparsers):
+        """Initializes v(iew) cli arguments.
 
-    """
-
-    def __init__(self, model):
-        """Creates new Arg instance.
-
-        Defines all necessary command line arguments, sub-parsers, etc.
-
-        :model: Model instance.
+        :subparsers: Argparse subparser to attach to.
 
         """
-        self.model = model
-        self.arg = ArgumentParser(
-            description="A non-offensive, per project ToDo manager."
-        )
-        self.arg.add_argument(
-            '-v', '--version', action='version', version=__version__
-        )
-        subparsers = self.arg.add_subparsers(title="available commands")
-
         view = subparsers.add_parser(
             'v', aliases=['view'], help="modify the view"
         )
@@ -119,6 +104,12 @@ class Arg(object):
         )
         view.set_defaults(func=self.view)
 
+    def initModify(self, subparsers):
+        """Initializes m(odify) cli arguments.
+
+        :subparsers: Argparse subparser to attach to.
+
+        """
         modify = subparsers.add_parser(
             'm', aliases=['modify'], help="modify the database"
         )
@@ -139,6 +130,15 @@ class Arg(object):
         )
         modify.set_defaults(func=self.modify)
 
+    def initAdd(self, subparsers):
+        """Initializes a(dd) cli arguments.
+
+        Uses some hackery to make parent argument nice and optional
+        at the same time.
+
+        :subparsers: Argparse subparser to attach to.
+
+        """
         add_parent = ArgumentParser(add_help=False)
         add_parent.add_argument(
             'parent', nargs='?',
@@ -152,7 +152,13 @@ class Arg(object):
         add.add_argument('-c', '--comment')
         add.set_defaults(func=self.add)
 
-        edit = subparsers.add_parser(
+    def initEdit(self):
+        """Initializes e(dit) cli arguments.
+
+        :subparsers: Argparse subparser to attach to.
+
+        """
+        edit = self.subparsers.add_parser(
             'e', aliases=['edit'],
             help="edit existing item (also used for reparenting)"
         )
@@ -163,24 +169,48 @@ class Arg(object):
         edit.add_argument('-c', '--comment', help="new comment")
         edit.set_defaults(func=self.edit)
 
+    def initRm(self, subparsers):
+        """Initializes r(m) cli arguments.
+
+        :subparsers: Argparse subparser to attach to.
+
+        """
         rm = subparsers.add_parser(
             'r', aliases=['rm'], help="remove existing item"
         )
         rm.add_argument('index', help="index of the item to remove")
         rm.set_defaults(func=self.rm)
 
+    def initDone(self, subparsers):
+        """Initializes d(one) cli arguments.
+
+        :subparsers: Argparse subparser to attach to.
+
+        """
         done = subparsers.add_parser(
             'd', aliases=['done'], help="mark item as done"
         )
         done.add_argument('index', help="index of the item to mark")
         done.set_defaults(func=self.done)
 
+    def initUndone(self, subparsers):
+        """Initialized D (undone) cli arguments.
+
+        :subparsers: Argparse subparser to attach to.
+
+        """
         undone = subparsers.add_parser(
             'D', aliases=['undone'], help='mark item as not done'
         )
         undone.add_argument('index', help="index of the item to unmark")
         undone.set_defaults(func=self.undone)
 
+    def initOptions(self, subparsers):
+        """Initialized o(ptions) cli arguments.
+
+        :subparsers: Argparse subparser to attach to.
+
+        """
         options = subparsers.add_parser(
             'o', aliases=['options'], help="change options"
         )
@@ -206,6 +236,37 @@ class Arg(object):
         )
         options.set_defaults(func=self.options)
 
+
+class Arg(ParserMixin):
+    """Handles everything related to command line arguments parsing,
+    patterns decoding and calling appropriate view/model manipulation methods.
+
+    """
+
+    def __init__(self, model):
+        """Creates new Arg instance.
+
+        Defines all necessary command line arguments, sub-parsers, etc.
+
+        :model: Model instance.
+
+        """
+        self.model = model
+        self.arg = ArgumentParser(
+            description="A non-offensive, per project ToDo manager."
+        )
+        self.arg.add_argument(
+            '-v', '--version', action='version', version=__version__
+        )
+        subparsers = self.arg.add_subparsers(title="available commands")
+        self.initView(subparsers)
+        self.initModify(subparsers)
+        self.initAdd(subparsers)
+        self.initEdit(subparsers)
+        self.initRm(subparsers)
+        self.initDone(subparsers)
+        self.initUndone(subparsers)
+        self.initOptions(subparsers)
         args = self.arg.parse_args()
         args.func(args)
 

@@ -18,10 +18,10 @@
 
 import sys
 import readline
-import logging
 from argparse import ArgumentParser
 import colorama
 from td.model import Model
+from td.logger import logs
 
 
 __version__ = '0.1'
@@ -31,16 +31,8 @@ class InvalidPatternError(Exception):
     def __init__(self, k, msg):
         self.message = "{0}: {1}".format(msg, k)
 
-
-def logs(func):
-    logger = logging.getLogger('td')
-
-    def _logs(self, *args, **kwargs):
-        try:
-            return func(self, *args, **kwargs)
-        except InvalidPatternError as e:
-            logger.error(e.message)
-    return _logs
+    def __str__(self):
+        return self.message
 
 
 class View(object):

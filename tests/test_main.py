@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # This is a part of td @ http://github.com/KenjiTakahashi/td
-# Karol "Kenji Takahashi" Woźniak © 2012
+# Karol "Kenji Takahashi" Woźniak © 2012 - 2013
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,27 +16,14 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import logging
+from tests.mocks import HandlerMock
 from td.main import Arg
-
-
-class HandlerMock(logging.Handler):
-    def __init__(self):
-        super(HandlerMock, self).__init__()
-        self.message = None
-
-    def emit(self, record):
-        self.message = record.msg
-
-    def assertLogged(self, message):
-        assert self.message == message
 
 
 class Test_getPattern(object):
     def setUp(self):
         self.arg = Arg.__new__(Arg)  # Don't do this at home
         self.handler = HandlerMock()
-        logging.getLogger('td').addHandler(self.handler)
 
     def test_sort_all_levels(self):
         result = self.arg._getPattern(True)

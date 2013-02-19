@@ -21,6 +21,15 @@ import shutil
 import json
 import re
 from collections import UserList
+from td.logger import logs
+
+
+class NoItemError(Exception):
+    def __init__(self, k):
+        self.message = "No item found at index: {}".format(k)
+
+    def __str__(self):
+        return self.message
 
 
 def devtodo(path):
@@ -218,6 +227,7 @@ class Model(UserList):
 
     @save
     @load
+    @logs
     def remove(self, index):
         """Removes specified item from the model.
 
@@ -234,7 +244,7 @@ class Model(UserList):
                 try:
                     del data[i]
                 except IndexError:
-                    pass  # TODO(Kenji): logger
+                    raise NoItemError('.'.join(index))
             else:
                 data = data[i][4]
 

@@ -18,6 +18,7 @@
 
 import os
 import json
+from tests.mocks import HandlerMock
 from td.main import Model
 
 
@@ -75,6 +76,12 @@ class TestRemove(ModelTest):
         self.model.add("testname2", parent="1")
         self.model.remove("1.1")
         assert self.model == [["testname", 3, "", False, []]]
+
+    def test_remove_non_existing_item(self):
+        handler = HandlerMock()
+        self.model.add("testname")
+        self.model.remove("1.1")
+        handler.assertLogged('No item found at index: 1.1')
 
 
 class TestEdit(ModelTest):

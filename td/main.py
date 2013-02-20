@@ -19,7 +19,6 @@
 import sys
 import readline
 from argparse import ArgumentParser
-import colorama
 from td.model import Model
 from td.logger import logs
 
@@ -38,6 +37,14 @@ class InvalidPatternError(Exception):
 class View(object):
     """Class used to display items on the screen."""
 
+    COLORS = [
+        None, '\033[34m', '\033[36m',
+        '\033[37m', '\033[33m', '\033[31m'
+    ]
+    DIM = '\033[2m'
+    BRIGHT = '\033[1m'
+    RESET = '\033[0m'
+
     def __init__(self, model, **opts):
         """Creates new View instance.
 
@@ -47,12 +54,6 @@ class View(object):
         :opts: Additional options defining the View looks.
 
         """
-        colors = [
-            None, colorama.Fore.BLUE, colorama.Fore.CYAN,
-            colorama.Fore.WHITE, colorama.Fore.YELLOW, colorama.Fore.RED
-        ]
-        colorama.init()
-
         def _show(submodel, offset):
             numoffset = len(str(len(list(submodel)))) - 1
             for i, v in enumerate(submodel, start=1):
@@ -61,18 +62,13 @@ class View(object):
                 if i < 10:
                     padding += " " * numoffset
                 print("{0}{1}{2}{3}{4}{5}{6}".format(
-                    colorama.Style.RESET_ALL,
-                    padding, colors[priority],
-                    done and colorama.Style.DIM or colorama.Style.BRIGHT,
+                    View.RESET, padding, View.COLORS[priority],
+                    done and View.DIM or View.BRIGHT,
                     i, done and '-' or '.', name
                 ))
                 padding += " " * (len(str(i)) + 1)
                 if comment:
-                    print("{0}{1}({2})".format(
-                        padding,
-                        colorama.Style.RESET_ALL,
-                        comment
-                    ))
+                    print("{0}{1}({2})".format(padding, View.RESET, comment))
                 _show(subitems, offset + 2 + numoffset)
         _show(model, 0)
 

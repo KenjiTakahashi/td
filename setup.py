@@ -29,11 +29,8 @@ setup(
     author_email='wozniakk@gmail.com',
     license='GPL3',
     url='http://github.com/KenjiTakahashi/td',
-    packages=[
-        'td'
-    ],
+    packages=['td'],
     scripts=['scripts/td'],
-    install_requires=['colorama'],
     classifiers=[f.strip() for f in """
     Development Status :: 4 - Beta
     Environment :: Console

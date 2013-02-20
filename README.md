@@ -15,9 +15,19 @@ Oh, and it will automagically pick up your existing [devtodo][devtodo] lists!
 
 ## requirements
 * python >= 3.2
-* colorama
 * distribute (for setup)
 * nosetests (for test-suite)
+
+## installation
+
+Through [PyPI][pypi]
+```sh
+$ pip install td
+```
+or from sources
+```sh
+$ python setup.py install
+```
 
 ## usage
 #### show
@@ -166,3 +176,4 @@ $ td (v|m|o) -(d|D) <level>:<field_name>=<regexp>
 Of course, these rules can also be chained using comma (`,`).
 
 [devtodo]: http://swapoff.org/devtodo1.html
+[pypi]: https://pypi.python.org/pypi/td/0.1

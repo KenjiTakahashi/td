@@ -17,9 +17,8 @@
 
 
 import os
-import colorama
 from tests.mocks import HandlerMock, StdoutMock
-from td.main import Arg, run
+from td.main import Arg, run, View
 from td.model import Model
 
 
@@ -109,9 +108,6 @@ class TestBehaviour(object):
         self.mock.resetArgv()
         run()
         result = "{}{}{}{}{}{}\n".format(
-            colorama.Style.RESET_ALL,
-            colorama.Fore.WHITE,
-            colorama.Style.BRIGHT,
-            1, '.', 'test'
+            View.RESET, View.COLORS[3], View.BRIGHT, 1, '.', 'test'
         )
         self.mock.assertEqual(result)

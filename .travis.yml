@@ -3,7 +3,6 @@ python:
   - "3.2"
   - "3.3"
 install:
-  - pip install colorama
   - pip install coverage
   - pip install coveralls
   - pip install . --use-mirrors

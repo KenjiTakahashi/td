@@ -16,8 +16,11 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from tests.mocks import HandlerMock
-from td.main import Arg
+import os
+import colorama
+from tests.mocks import HandlerMock, StdoutMock
+from td.main import Arg, run
+from td.model import Model
 
 
 class Test_getPattern(object):
@@ -88,3 +91,27 @@ class Test_getPattern(object):
     def test_passing_invalid_index_name_with_done(self):
         self.arg._getPattern("nema=.*", done=True)
         self.handler.assertLogged('Invalid field name: nema')
+
+    def test_empty_should_stay_empty(self):
+        result = self.arg._getPattern(None)
+        assert result is None
+
+
+class TestBehaviour(object):
+    def setUp(self):
+        self.mock = StdoutMock()
+        Model.path = os.path.join(os.getcwd(), 'tests', 'data', 'tdtest1')
+
+    def tearDown(self):
+        self.mock.undo()
+
+    def test_display_whole_list(self):
+        self.mock.resetArgv()
+        run()
+        result = "{}{}{}{}{}{}\n".format(
+            colorama.Style.RESET_ALL,
+            colorama.Fore.WHITE,
+            colorama.Style.BRIGHT,
+            1, '.', 'test'
+        )
+        self.mock.assertEqual(result)

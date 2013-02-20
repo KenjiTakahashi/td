@@ -152,13 +152,13 @@ class ParserMixin(object):
         add.add_argument('-c', '--comment')
         add.set_defaults(func=self.add)
 
-    def initEdit(self):
+    def initEdit(self, subparsers):
         """Initializes e(dit) cli arguments.
 
         :subparsers: Argparse subparser to attach to.
 
         """
-        edit = self.subparsers.add_parser(
+        edit = subparsers.add_parser(
             'e', aliases=['edit'],
             help="edit existing item (also used for reparenting)"
         )

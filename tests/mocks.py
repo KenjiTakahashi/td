@@ -17,6 +17,8 @@
 
 
 import logging
+import sys
+from io import StringIO
 
 
 class HandlerMock(logging.Handler):
@@ -30,3 +32,22 @@ class HandlerMock(logging.Handler):
 
     def assertLogged(self, message):
         assert self.message == message
+
+
+class StdoutMock(object):
+    def __init__(self):
+        sys.stdout = StringIO()
+        self.argv = sys.argv
+
+    def undo(self):
+        sys.argv = self.argv
+        sys.stdout = sys.__stdout__
+
+    def resetArgv(self):
+        sys.argv = ['td']
+
+    def setArgv(self, *args):
+        sys.argv.extend(*args)
+
+    def assertEqual(self, msg):
+        assert msg == sys.stdout.getvalue()

@@ -26,13 +26,14 @@ class ModelTest(object):
     def setUp(self):
         self.model = Model()
         path = os.path.join(os.getcwd(), 'tests')
-        self.model.setPath(path)
+        self.model.setPath(os.path.join(path, '.td'))
         self.model.gpath = os.path.join(path, '.tdrc')
+        self.tmppath = os.path.join(path, '.td~')
 
     def tearDown(self):
         try:
-            os.remove(os.path.join(self.model.path, '.td'))
-            os.remove(os.path.join(self.model.path, '.td~'))
+            os.remove(self.model.path)
+            os.remove(self.tmppath)
             os.remove(self.model.gpath)
         except OSError:
             pass
@@ -42,9 +43,8 @@ class TestBackup(ModelTest):
     def test_should_create_backup_when_file_exists(self):
         self.model.add("testname1")
         self.model.add("testname2")
-        path = os.path.join(self.model.path, '.td~')
-        assert os.path.exists(path)
-        assert json.loads(open(path).read()) == {
+        assert os.path.exists(self.tmppath)
+        assert json.loads(open(self.tmppath).read()) == {
             'items': [["testname1", 3, "", False, []]],
             'refs': {},
             'options': {}
@@ -426,7 +426,7 @@ class TestOptions(ModifyTest):
 
     def getNewModel(self):
         model = Model()
-        model.setPath(os.path.join(os.getcwd(), 'tests'))
+        model.setPath(os.path.join(os.getcwd(), 'tests', '.td'))
         return model
 
     def test_sort(self):

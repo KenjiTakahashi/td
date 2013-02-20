@@ -72,15 +72,14 @@ def devtodo(path):
 def load(func):
     """@decorator: Loads data before executing :func:."""
     def aux(self, *args, **kwargs):
-        path = hasattr(self, 'path') and self.path or os.getcwd()
-        if hasattr(self, 'gpath'):
-            gpath = self.gpath
-        else:
-            gpath = os.path.expanduser('~/.tdrc')
+        path = (hasattr(self, 'path') and self.path
+                or os.path.join(os.getcwd(), '.td'))
+        gpath = (hasattr(self, 'gpath') and self.gpath
+                 or os.path.expanduser('~/.tdrc'))
         try:
-            data = json.loads(open(os.path.join(path, '.td')).read())
+            data = json.loads(open(path).read())
         except IOError:
-            data = devtodo(path)
+            data = devtodo(os.path.dirname(path))
             if data is not None:
                 self[:] = data
             self.refs = dict()
@@ -105,20 +104,18 @@ def save(func):
     """
     def aux(self, *args, **kwargs):
         out = func(self, *args, **kwargs)
-        path = hasattr(self, 'path') and self.path or os.getcwd()
-        npath = os.path.join(path, '.td')
-        if hasattr(self, 'gpath'):
-            gpath = self.gpath
-        else:
-            gpath = os.path.expanduser('~/.tdrc')
-        if os.path.exists(npath):
-            shutil.copy2(npath, os.path.join(path, '.td~'))
+        path = (hasattr(self, 'path') and self.path
+                or os.path.join(os.getcwd(), '.td'))
+        gpath = (hasattr(self, 'gpath') and self.gpath
+                 or os.path.expanduser('~/.tdrc'))
+        if os.path.exists(path):
+            shutil.copy2(path, os.path.join(os.path.dirname(path), '.td~'))
         self.data = self._modifyInternal(
             sort=self.options.get('sort') or self.globalOptions.get('sort'),
             purge=self.options.get('purge') or self.globalOptions.get('purge'),
             done=self.options.get('done') or self.globalOptions.get('done')
         )
-        open(npath, 'w').write(
+        open(path, 'w').write(
             json.dumps({
                 'items': self.data,
                 'refs': self.refs,

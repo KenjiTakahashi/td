@@ -92,6 +92,11 @@ def load(func):
             self.globalOptions = json.loads(open(gpath).read())
         except IOError:
             self.globalOptions = dict()
+        self.data = self._modifyInternal(
+            sort=self.options.get('sort') or self.globalOptions.get('sort'),
+            purge=self.options.get('purge') or self.globalOptions.get('purge'),
+            done=self.options.get('done') or self.globalOptions.get('done')
+        )
         return func(self, *args, **kwargs)
     return aux
 
@@ -110,11 +115,6 @@ def save(func):
                  or os.path.expanduser('~/.tdrc'))
         if os.path.exists(path):
             shutil.copy2(path, os.path.join(os.path.dirname(path), '.td~'))
-        self.data = self._modifyInternal(
-            sort=self.options.get('sort') or self.globalOptions.get('sort'),
-            purge=self.options.get('purge') or self.globalOptions.get('purge'),
-            done=self.options.get('done') or self.globalOptions.get('done')
-        )
         open(path, 'w').write(
             json.dumps({
                 'items': self.data,

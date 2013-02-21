@@ -462,7 +462,9 @@ class TestOptions(ModifyTest):
 
     def getNewModel(self):
         model = Model()
-        model.setPath(os.path.join(os.getcwd(), 'tests', '.td'))
+        path = os.path.join(os.getcwd(), 'tests')
+        model.setPath(os.path.join(path, '.td'))
+        model.gpath = os.path.join(path, '.tdrc')
         return model
 
     def test_sort(self):

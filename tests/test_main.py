@@ -29,47 +29,63 @@ class Test_getPattern(object):
 
     def test_sort_all_levels(self):
         result = self.arg._getPattern(True)
-        assert result == ((0, False), {})
+        assert result == ([(0, False)], {})
 
     def test_sort_one_specific_level(self):
         result = self.arg._getPattern("1+")
-        assert result == (None, {1: (0, True)})
+        assert result == ([], {1: [(0, True)]})
 
     def test_sort_two_specific_levels(self):
         result = self.arg._getPattern("1+,2-")
-        assert result == (None, {1: (0, True), 2: (0, False)})
+        assert result == ([], {1: [(0, True)], 2: [(0, False)]})
 
     def test_sort_all_levels_and_specific_level(self):
         result = self.arg._getPattern("+,1+")
-        assert result == ((0, True), {1: (0, True)})
+        assert result == ([(0, True)], {1: [(0, True)]})
 
     def test_sort_all_levels_by_priority(self):
         result = self.arg._getPattern("priority+")
-        assert result == ((1, True), {})
+        assert result == ([(1, True)], {})
+
+    def test_sort_all_levels_by_name_and_priority(self):
+        result = self.arg._getPattern("-,priority+")
+        assert result == ([(0, False), (1, True)], {})
+
+    def test_sort_all_levels_by_state_and_priority(self):
+        result = self.arg._getPattern("state-,priority+")
+        assert result == ([(3, False), (1, True)], {})
 
     def test_sort_specific_level_by_priority(self):
         result = self.arg._getPattern("1:priority+")
-        assert result == (None, {1: (1, True)})
+        assert result == ([], {1: [(1, True)]})
+
+    def test_sort_specific_level_by_name_and_priority(self):
+        result = self.arg._getPattern("1-,1:priority+")
+        assert result == ([], {1: [(0, False), (1, True)]})
+
+    def test_sort_specific_level_by_state_and_priority(self):
+        result = self.arg._getPattern("1:state-,1:priority+")
+        assert result == ([], {1: [(3, False), (1, True)]})
 
     def test_done_all(self):
         result = self.arg._getPattern(True, done=True)
-        assert result == ((None, None, True), {})
+        assert result == ([(None, None, True)], {})
 
     def test_done_all_by_regexp(self):
         result = self.arg._getPattern("test.*[1-9]", done=True)
-        assert result == ((None, r'test.*[1-9]', True), {})
+        assert result == ([(None, r'test.*[1-9]', True)], {})
 
     def test_done_all_by_comment_regexp(self):
         result = self.arg._getPattern("comment=test.*[1-9]", done=True)
-        assert result == ((2, r'test.*[1-9]', True), {})
+        assert result == ([(2, r'test.*[1-9]', True)], {})
 
     def test_done_specific_level_by_regexp(self):
         result = self.arg._getPattern("1:test.*[1-9]", done=True)
-        assert result == (None, {1: (None, r'test.*[1-9]', True)})
+        assert result == ([], {1: [(None, r'test.*[1-9]', True)]})
 
     def test_done_specific_level_by_comment_regexp(self):
         result = self.arg._getPattern("1:comment=test.*[1-9]", done=True)
-        assert result == (None, {1: (2, r'test.*[1-9]', True)})
+        assert result == ([], {1: [(2, r'test.*[1-9]', True)]})
 
     def test_passing_invalid_level_without_index(self):
         self.arg._getPattern("a+")

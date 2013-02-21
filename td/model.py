@@ -283,12 +283,13 @@ class Model(UserList):
         modifiers.
 
         :sort: pattern should look like this:
-        (None|(<index>, True|False), {<level_index>: (<index>, True|False)}),
+        ([(<index>, True|False)], {<level_index>: [(<index>, True|False)]}),
         where True|False indicate whether to reverse or not,
         <index> are one of Model.indexes and <level_index> indicate
         a number of level to sort.
+        Of course, the lists above may contain multiple items.
 
-        :done: pattern looks similar to :sort:, except that it has additional
+        :done: patterns looks similar to :sort:, except that it has additional
         <regexp> values and that True|False means to mark as done|undone.
 
         @note: Should not be used directly. It was defined here, because
@@ -300,8 +301,8 @@ class Model(UserList):
         :returns: New database, modified according to supplied arguments.
 
         """
-        sortAll, sortLevels = sort is not None and sort or (None, None)
-        doneAll, doneLevels = done is not None and done or (None, None)
+        sortAll, sortLevels = sort is not None and sort or ([], {})
+        doneAll, doneLevels = done is not None and done or ([], {})
 
         def _mark(v, i):
             if done is None:
@@ -318,12 +319,14 @@ class Model(UserList):
                 if regexp is None or re.match(regexp, str(v[index])):
                     return v[:3] + [du]
             try:
-                result = _mark_(*doneLevels[i])
+                for doneLevel in doneLevels[i]:
+                    result = _mark_(*doneLevel)
                 if result is not None:
                     return result
             except KeyError:
                 pass
-            result = _mark_(*doneAll)
+            for doneAll_ in doneAll:
+                result = _mark_(*doneAll_)
             if result is None:
                 return v[:4]
             return result
@@ -336,11 +339,9 @@ class Model(UserList):
                         _new.append(_mark(v, i) + [_modify(v[4], i + 1)])
                 else:
                     _new.append(_mark(v, i) + [_modify(v[4], i + 1)])
-            try:
-                index, reverse = sortLevels.get(i) or sortAll
-                return sorted(_new, key=lambda e: e[index], reverse=reverse)
-            except (TypeError, AttributeError):
-                return _new
+            for index, reverse in sortLevels.get(i) or sortAll:
+                _new = sorted(_new, key=lambda e: e[index], reverse=reverse)
+            return _new
         return _modify(self.data, 1)
 
     @load

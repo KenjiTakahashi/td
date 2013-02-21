@@ -23,7 +23,7 @@ from td.model import Model
 from td.logger import logs
 
 
-__version__ = '0.1'
+__version__ = '0.2'
 
 
 class InvalidPatternError(Exception):
@@ -280,8 +280,8 @@ class Arg(ParserMixin):
             return None
         if ipattern is True:
             if done is not None:
-                return ((None, None, done), {})
-            return ((0, False), {})
+                return ([(None, None, done)], {})
+            return ([(0, False)], {})
 
         def _getReverse(pm):
             return pm == '+'
@@ -300,33 +300,29 @@ class Arg(ParserMixin):
                 except KeyError:
                     raise InvalidPatternError(v[0], 'Invalid field name')
             return (None, v[0], done)
-        split = ipattern.split(',')
-        ipattern1 = split[0].split(':')
-        if len(ipattern1) == 1:
-            ipattern1 = ipattern1[0]
-            try:
-                if done is not None:
-                    ipattern1 = _getDone(ipattern1)
-                else:
-                    if len(ipattern1) == 1:
-                        index = 0
-                    else:
-                        index = Model.indexes[ipattern1[:-1]]
-                    ipattern1 = (index, _getReverse(ipattern1[-1]))
-                split = split[1:]
-            except KeyError:
-                ipattern1 = None
-        else:
-            ipattern1 = None
+        ipattern1 = list()
         ipattern2 = dict()
-        for s in split:
+        for s in ipattern.split(','):
             if done is not None:
                 v = done
             else:
                 v = _getReverse(s[-1])
             k = s.split(':')
             if len(k) == 1:
-                k = _getIndex(k[0][:-1])
+                if done is not None:
+                    ipattern1.append(_getDone(k[0]))
+                    continue
+                ko = k[0][:-1]
+                try:
+                    if len(k[0]) == 1:
+                        k = 0
+                    else:
+                        k = Model.indexes[ko]
+                except KeyError:
+                    k = _getIndex(k[0][:-1])
+                else:
+                    ipattern1.append((k, v))
+                    continue
                 v = (0, v)
             elif len(k) == 2:
                 try:
@@ -339,7 +335,7 @@ class Arg(ParserMixin):
                     raise InvalidPatternError(k[1][:-1], 'Invalid field name')
             else:
                 raise InvalidPatternError(s, 'Unrecognized token in')
-            ipattern2[k] = v
+            ipattern2.setdefault(k, []).append(v)
         return (ipattern1, ipattern2)
 
     def _getDone(self, args):

@@ -125,6 +125,8 @@ $ td (v|m|o) -s +,1-,2:priority+
 ```
 will sort items at the second level asceding by priority, item at the first level desceding by name, and all other levels asceding by name.
 
+Note that to sort by multiple conditions, just supply them one by one and they'll be applied in order of appearance.
+
 **purge**
 
 Typing

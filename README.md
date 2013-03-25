@@ -178,4 +178,4 @@ $ td (v|m|o) -(d|D) <level>:<field_name>=<regexp>
 Of course, these rules can also be chained using comma (`,`).
 
 [devtodo]: http://swapoff.org/devtodo1.html
-[pypi]: https://pypi.python.org/pypi/td/0.1
+[pypi]: https://pypi.python.org/pypi/td

@@ -23,7 +23,7 @@ from td.model import Model
 from td.logger import logs
 
 
-__version__ = '0.2'
+__version__ = '0.2.1'
 
 
 class InvalidPatternError(Exception):

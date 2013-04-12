@@ -6,3 +6,6 @@
 - Global options stored in ~/.tdrc.
 - Dropped colorama.
 - Sorting by multiple conditions.
+
+== 0.2.1 (12.04.2013):
+- Fixed reading specifing level sorting conditions from .td/.tdrc files.

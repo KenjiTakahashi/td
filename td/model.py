@@ -339,7 +339,8 @@ class Model(UserList):
                         _new.append(_mark(v, i) + [_modify(v[4], i + 1)])
                 else:
                     _new.append(_mark(v, i) + [_modify(v[4], i + 1)])
-            for index, reverse in sortLevels.get(i) or sortAll:
+            levels = sortLevels.get(i) or sortLevels.get(str(i))
+            for index, reverse in levels or sortAll:
                 _new = sorted(_new, key=lambda e: e[index], reverse=reverse)
             return _new
         return _modify(self.data, 1)

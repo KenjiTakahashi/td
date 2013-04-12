@@ -368,6 +368,15 @@ class TestModify(ModifyTest):
             ["testname3", 5, "", False, []]
         ]
 
+    def test_sort_with_level_specified_as_string(self):
+        # JSON corner case
+        sort = ([], {"1": [(0, True)]})
+        result = self.model.modify(sort=sort)
+        assert result == [
+            ["testname2", 3, "", False, []],
+            ["testname1", 4, "", True, []]
+        ]
+
     def test_done_all_levels(self):
         self.addSecondLevel()
         done = ([(None, None, True)], {})

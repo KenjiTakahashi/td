@@ -16,13 +16,169 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import os
-from tests.mocks import HandlerMock, StdoutMock
-from td.main import Arg, run, View
-from td.model import Model
+from collections import deque
+from tests.mocks import HandlerMock, StdoutMock, ArgMock
+from td.main import Arg, Parser
 
 
-class Test_getPattern(object):
+class TestParser_part(object):
+    def setUp(self):
+        self.mock = StdoutMock()
+        self.handler = HandlerMock()
+        self.out1 = None
+        self.out2 = None
+
+    def tearDown(self):
+        self.mock.undo()
+
+    def func1(self, test=None):
+        self.out1 = test
+
+    def func2(self, test1=None, test2=None):
+        self.out2 = (test1, test2)
+
+    def test_help_message(self):
+        parser = Parser("", ["td", "-h"])
+        parser._part("test", "", {}, "help")
+        self.mock.assertEqual("help\n")
+
+    def test_one_argument(self):
+        parser = Parser("", ["td", "-t", "value"])
+        parser._part("test", self.func1, {"-t": ("test", True)}, "")
+        assert self.out1 == "value"
+
+    def test_argument_without_value(self):
+        parser = Parser("", ["td", "-b"])
+        parser._part("test", self.func1, {"-b": ("test", False)}, "")
+        assert self.out1 is True
+
+    def test_two_arguments(self):
+        #It should break by induction further on.
+        parser = Parser("", ["td", "-t1", "value1", "-t2", "value2"])
+        parser._part("test", self.func2, {
+            "-t1": ("test1", True), "-t2": ("test2", True)
+        }, "")
+        self.out2 == ("value1", "value2")
+
+    def test_one_argument_for_two_arguments_func(self):
+        parser = Parser("", ["td", "-t2", "value2"])
+        parser._part("test", self.func2, {
+            "-t1": ("test1", True), "-t2": ("test2", True)
+        }, "")
+        self.out2 == (None, "value2")
+
+    def test_no_arguments(self):
+        parser = Parser("", ["td"])
+        parser._part("test", "", {}, "")
+        self.handler.assertLogged("test: Not enough arguments.")
+
+    def test_missing_argument(self):
+        parser = Parser("", ["td", "-t"])
+        parser._part("test", "", {"-t": ("test", True)}, "")
+        self.handler.assertLogged("test: Not enough arguments.")
+
+    def test_wrong_argument(self):
+        parser = Parser("", ["td", "-y"])
+        parser._part("test", "", {"-t": ("test", True)}, "")
+        self.handler.assertLogged("test: Unrecognized argument [-y].")
+
+
+class TestParserrock(object):
+    def setUp(self):
+        self.mock = StdoutMock()
+        self.handler = HandlerMock()
+        self.parser = Parser(ArgMock(), ["td"])
+        self.parser._part = self.mock_part
+        self.out = False
+
+    def tearDown(self):
+        self.mock.undo()
+
+    def mock_part(self, *args, **kwargs):
+        self.out = True
+
+    def do_part(self, *n):
+        self.parser.argv = deque(n)
+        self.parser.rock()
+
+    def assert_part(self, *n):
+        self.do_part(*n)
+        assert self.out is True
+
+    def test_v(self):
+        self.assert_part("v")
+
+    def test_view(self):
+        self.assert_part("view")
+
+    def test_m(self):
+        self.assert_part("m")
+
+    def test_modify(self):
+        self.assert_part("modify")
+
+    def test_a(self):
+        self.assert_part("a")
+
+    def test_add(self):
+        self.assert_part("add")
+
+    def test_e_without_index(self):
+        self.do_part("e")
+        self.handler.assertLogged("edit: Not enough arguments.")
+
+    def test_e(self):
+        self.assert_part("e", "1.1")
+
+    def test_edit(self):
+        self.assert_part("edit", "1.1")
+
+    def test_r_without_index(self):
+        self.do_part("r")
+        self.handler.assertLogged("rm: Not enough arguments.")
+
+    def test_r(self):
+        self.assert_part("r", "1.1")
+
+    def test_rm(self):
+        self.assert_part("rm", "1.1")
+
+    def test_d_without_index(self):
+        self.do_part("d")
+        self.handler.assertLogged("done: Not enough arguments.")
+
+    def test_d(self):
+        self.assert_part("d", "1.1")
+
+    def test_done(self):
+        self.assert_part("done", "1.1")
+
+    def test_D_without_index(self):
+        self.do_part("D")
+        self.handler.assertLogged("undone: Not enough arguments.")
+
+    def test_D(self):
+        self.assert_part("D", "1.1")
+
+    def test_undone(self):
+        self.assert_part("undone", "1.1")
+
+    def test_o(self):
+        self.assert_part("o")
+
+    def test_options(self):
+        self.assert_part("options")
+
+    def test_add_parent(self):
+        #It deserves a separate test
+        self.assert_part("a", "1.1")
+
+    def test_wrong_command(self):
+        self.do_part("dang")
+        self.handler.assertLogged("td: Unrecognized command [dang].")
+
+
+class TestArg_getPattern(object):
     def setUp(self):
         self.arg = Arg.__new__(Arg)  # Don't do this at home
         self.handler = HandlerMock()
@@ -110,20 +266,3 @@ class Test_getPattern(object):
     def test_empty_should_stay_empty(self):
         result = self.arg._getPattern(None)
         assert result is None
-
-
-class TestBehaviour(object):
-    def setUp(self):
-        self.mock = StdoutMock()
-        Model.path = os.path.join(os.getcwd(), 'tests', 'data', 'tdtest1')
-
-    def tearDown(self):
-        self.mock.undo()
-
-    def test_display_whole_list(self):
-        self.mock.resetArgv()
-        run()
-        result = "{}{}{}{}{}{}\n".format(
-            View.RESET, View.COLORS[3], View.BRIGHT, 1, '.', 'test'
-        )
-        self.mock.assertEqual(result)

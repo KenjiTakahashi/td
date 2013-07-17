@@ -16,9 +16,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import sys
+from collections import deque
 import readline
-from argparse import ArgumentParser
+import sys
 from td.model import Model
 from td.logger import logs
 
@@ -26,12 +26,29 @@ from td.logger import logs
 __version__ = '0.2.1'
 
 
-class InvalidPatternError(Exception):
-    def __init__(self, k, msg):
-        self.message = "{0}: {1}".format(msg, k)
-
+class EException(Exception):
     def __str__(self):
         return self.message
+
+
+class InvalidPatternError(EException):
+    def __init__(self, k, msg):
+        self.message = "{}: {}".format(msg, k)
+
+
+class UnrecognizedArgumentError(EException):
+    def __init__(self, name, arg):
+        self.message = "{}: Unrecognized argument [{}].".format(name, arg)
+
+
+class UnrecognizedCommandError(EException):
+    def __init__(self, name, cmd):
+        self.message = "{}: Unrecognized command [{}].".format(name, cmd)
+
+
+class NotEnoughArgumentsError(EException):
+    def __init__(self, name):
+        self.message = "{}: Not enough arguments.".format(name)
 
 
 class View(object):
@@ -73,198 +90,252 @@ class View(object):
         _show(model, 0)
 
 
-class ParserMixin(object):
-    """Mixin class holding init methods for different parts of the paser."""
-    def initView(self, subparsers):
-        """Initializes v(iew) cli arguments.
+class Parser(object):
+    """Parses command line arguments and runs appropriate Arg methods.
 
-        :subparsers: Argparse subparser to attach to.
+    """
 
-        """
-        view = subparsers.add_parser(
-            'v', aliases=['view'], help="modify the view"
-        )
-        view.add_argument(
-            '-s', '--sort', nargs='?', const=True, help="sort the view"
-        )
-        view.add_argument(
-            '-p', '--purge', action='store_true', help="hide completed items"
-        )
-        view.add_argument(
-            '-d', '--done', nargs='?', const=True,
-            help="show all items as done"
-        )
-        view.add_argument(
-            '-D', '--undone', nargs='?', const=True,
-            help="show all items as not done"
-        )
-        view.set_defaults(func=self.view)
+    def __init__(self, arg, argv):
+        """Creates new Parser instance.
 
-    def initModify(self, subparsers):
-        """Initializes m(odify) cli arguments.
+        First element of :argv: should be irrelevant (e.g. apps' name),
+        because it will be stripped off.
 
-        :subparsers: Argparse subparser to attach to.
+        :arg: Arg instance.
+        :argv: A list from which to get arguments.
 
         """
-        modify = subparsers.add_parser(
-            'm', aliases=['modify'], help="modify the database"
-        )
-        modify.add_argument(
-            '-s', '--sort', nargs='?', const=True, help="sort the database"
-        )
-        modify.add_argument(
-            '-p', '--purge', action='store_true',
-            help="remove completed items"
-        )
-        modify.add_argument(
-            '-d', '--done', nargs='?', const=True,
-            help="mark all items as done"
-        )
-        modify.add_argument(
-            '-D', '--undone', nargs='?', const=True,
-            help="mark all items as not done"
-        )
-        modify.set_defaults(func=self.modify)
+        self.arg = arg
+        self.argv = deque(argv[1:])
 
-    def initAdd(self, subparsers):
-        """Initializes a(dd) cli arguments.
+    @logs
+    def _part(self, name, func, args, help, **kwargs):
+        """Parses arguments of a single command (e.g. 'v').
 
-        Uses some hackery to make parent argument nice and optional
-        at the same time.
-
-        :subparsers: Argparse subparser to attach to.
+        :name: Name of the command.
+        :func: Arg method to execute.
+        :args: Dictionary of CLI arguments pointed at Arg method arguments.
+        :help: Commands' help text.
+        :kwargs: Additional arguments for :func:.
 
         """
-        add_parent = ArgumentParser(add_help=False)
-        add_parent.add_argument(
-            'parent', nargs='?',
-            help="parent index (omit to add top-level item)"
-        )
-        add = subparsers.add_parser(
-            'a', aliases=['add'], parents=[add_parent], help="add new item"
-        )
-        add.add_argument('-n', '--name')
-        add.add_argument('-p', '--priority', type=int)
-        add.add_argument('-c', '--comment')
-        add.set_defaults(func=self.add)
+        if not self.argv:
+            raise NotEnoughArgumentsError(name)
+        while self.argv:
+            arg = self.argv.popleft()
+            if arg == "-h" or arg == "--help":
+                print(help)
+                return
+            try:
+                argname, argarg = args[arg]
+                kwargs[argname] = argarg and self.argv.popleft() or True
+            except KeyError:
+                raise UnrecognizedArgumentError(name, arg)
+            except IndexError:
+                raise NotEnoughArgumentsError(name)
+        func(**kwargs)
 
-    def initEdit(self, subparsers):
-        """Initializes e(dit) cli arguments.
+    @logs
+    def rock(self):
+        """Starts and does the parsing."""
+        if not self.argv:
+            self.arg.view()
+        while(self.argv):
+            arg = self.argv.popleft()
+            if arg == "-h" or arg == "--help":
+                print(
+                    """Usage: td [-h (--help)] [-v (--version)] [command]"""
+                    """, where [command] is one of:\n\n"""
+                    """v (view)\tChanges the way next output"""
+                    """ will look like. See [td v -h].\n"""
+                    """m (modify)\tApplies one time changes to"""
+                    """ the database. See [td m -h].\n"""
+                    """o (options)\tSets persistent options, applied"""
+                    """ on every next execution. See [td o -h].\n"""
+                    """a (add)\t\tAdds new item. See [td a -h].\n"""
+                    """e (edit)\tEdits existing item. See [td e -h].\n"""
+                    """r (rm)\t\tRemoves existing item. See [td r -h].\n"""
+                    """d (done)\tMarks items as done. See [td d -h].\n"""
+                    """D (undone)\tMarks items as not done. See [td D -h].\n"""
+                    """\nAdditional options:\n"""
+                    """  -h (--help)\tShows this screen.\n"""
+                    """  -v (--version)Shows version number."""
+                )
+            elif arg == "-v" or arg == "--version":
+                print("td :: {}".format(__version__))
+            elif arg == "v" or arg == "view":
+                self._part("view", self.arg.view, {
+                    "-s": ("sort", True), "--sort": ("sort", True),
+                    "-p": ("purge", False), "--purge": ("purge", False),
+                    "-d": ("done", True), "--done": ("done", True),
+                    "-D": ("undone", True), "--undone": ("undone", True)
+                },
+                    """Usage: td v [-h (--help)] [command(s)]"""
+                    """, where [command(s)] are any of:\n\n"""
+                    """-s (--sort) <pattern>\tSorts the output using"""
+                    """ <pattern>.\n"""
+                    """-p (--purge)\t\tHides items marked as done.\n"""
+                    """-d (--done) <pattern>\tDisplays items matching"""
+                    """ <pattern> as done.\n"""
+                    """-D (--undone) <pattern>\tDisplays items matching"""
+                    """ <pattern> as not done.\n"""
+                    """\nAdditional options:\n"""
+                    """  -h (--help)\t\tShows this screen."""
+                )
+            elif arg == "m" or arg == "modify":
+                self._part("modify", self.arg.modify, {
+                    "-s": ("sort", True), "--sort": ("sort", True),
+                    "-p": ("purge", False), "--purge": ("purge", False),
+                    "-d": ("done", True), "--done": ("done", True),
+                    "-D": ("undone", True), "--undone": ("undone", True)
+                },
+                    """Usage: td m [-h (--help)] [command(s)]"""
+                    """, where [command(s)] are any of:\n\n"""
+                    """-s (--sort) <pattern>\tSorts database using"""
+                    """ <pattern>.\n"""
+                    """-p (--purge)\t\tRemoved items marked as done.\n"""
+                    """-d (--done) <pattern>\tMarks items matching"""
+                    """ <pattern> as done.\n"""
+                    """-D (--undone) <pattern>\tMarks items matching"""
+                    """ <pattern> as not done.\n"""
+                    """\nAdditional options:\n"""
+                    """  -h (--help)\t\tShows this screen."""
+                )
+            elif arg == "a" or arg == "add":
+                args = dict()
+                if self.argv and self.arg.model.exists(self.argv[0]):
+                    args["parent"] = self.argv.popleft()
+                self._part("add", self.arg.add, {
+                    "-n": ("name", True), "--name": ("name", True),
+                    "-p": ("priority", True), "--priority": ("priority", True),
+                    "-c": ("comment", True), "--comment": ("comment", True)
+                },
+                    """Usage: td a [-h (--help)] [parent] [command(s)]"""
+                    """, where [command(s)] are any of:\n\n"""
+                    """-n (--name) <text>\t\tSets item's name.\n"""
+                    """-p (--priority) <no|name>\tSets item's priority.\n"""
+                    """-c (--comment) <text>\t\tSets item's comment.\n"""
+                    """\nIf [parent] index is specified, new item will"""
+                    """ become it's child.\n"""
+                    """If any of the arguments is omitted,"""
+                    """ this command will launch an interactive session"""
+                    """ letting the user supply the rest of them.\n"""
+                    """\nAdditional options:\n"""
+                    """  -h (--help)\t\t\tShows this screen.""",
+                    **args
+                )
+            elif arg == "e" or arg == "edit":
+                args = dict()
+                if not self.argv:
+                    raise NotEnoughArgumentsError("edit")
+                elif self.argv[0] not in ["-h", "--help"]:
+                    args["index"] = self.argv.popleft()
+                self._part("edit", self.arg.edit, {
+                    "--parent": ("parent", True),
+                    "-n": ("name", True), "--name": ("name", True),
+                    "-p": ("priority", True), "--priority": ("priority", True),
+                    "-c": ("comment", True), "--comment": ("comment", True)
+                },
+                    """Usage: td e [-h (--help)] <index> [command(s)]"""
+                    """, where [command(s)] are any of:\n\n"""
+                    """--parent <index>\t\tChanges item's parent.\n"""
+                    """-n (--name) <text>\t\tChanges item's name.\n"""
+                    """-p (--priority) <no|name>\tChanges item's priority.\n"""
+                    """-c (--comment) <text>\t\tChanges item's comment.\n"""
+                    """\nIndex argument is required and has to point at"""
+                    """ an existing item.\n"""
+                    """If any of the arguments is omitted, it will launch"""
+                    """ an interactive session letting the user supply the"""
+                    """ rest of them.\n"""
+                    """\nAdditions options:\n"""
+                    """  -h (--help)\t\t\tShows this screen.""",
+                    **args
+                )
+            elif arg == "r" or arg == "rm":
+                args = dict()
+                if not self.argv:
+                    raise NotEnoughArgumentsError("rm")
+                elif self.argv[0] not in ["-h", "--help"]:
+                    args["index"] = self.argv.popleft()
+                self._part("rm", self.arg.rm, {
+                },
+                    """Usage: td r [-h (--help)] <index>\n\n"""
+                    """Index argument is required and has to point at"""
+                    """ an existing item.\n"""
+                    """\nAdditions options:\n"""
+                    """  -h (--help)\tShows this screen.""",
+                    **args
+                )
+            elif arg == "d" or arg == "done":
+                args = dict()
+                if not self.argv:
+                    raise NotEnoughArgumentsError("done")
+                elif self.argv[0] not in ["-h", "--help"]:
+                    args["index"] = self.argv.popleft()
+                self._part("done", self.arg.done, {
+                },
+                    """Usage: td d [-h (--help)] <index>\n\n"""
+                    """Index argument is required and has to point at"""
+                    """ an existing item.\n"""
+                    """\nAdditional options:\n"""
+                    """  -h (--help)\tShows this screen."""
+                )
+            elif arg == "D" or arg == "undone":
+                args = dict()
+                if not self.argv:
+                    raise NotEnoughArgumentsError("undone")
+                elif self.argv[0] not in ["-h", "--help"]:
+                    args["index"] = self.argv.popleft()
+                self._part("done", self.arg.done, {
+                },
+                    """Usage: td D [-h (--help)] <index>\n\n"""
+                    """Index argument is required and has to point at"""
+                    """ an existing item.\n"""
+                    """\nAdditional options:\n"""
+                    """  -h (--help)\tShows this screen."""
+                )
+            elif arg == "o" or arg == "options":
+                self._part("options", self.arg.options, {
+                    "-g": ("global", False),
+                    "-s": ("sort", True), "--sort": ("sort", True),
+                    "-p": ("purge", False), "--purge": ("purge", False),
+                    "-d": ("done", True), "--done": ("done", True),
+                    "-D": ("undone", True), "--undone": ("undone", True)
+                },
+                    """Usage: td o [-h (--help)] [command(s)]"""
+                    """, where [command(s)] are any of:\n\n"""
+                    """-g\t\t\tApply specified options to all ToDo lists ("""
+                    """store in ~/.tdrc).\n"""
+                    """-s (--sort) <pattern>\tAlways sorts using"""
+                    """ <pattern>.\n"""
+                    """-p (--purge)\t\tAlways removes items marked"""
+                    """as done.\n"""
+                    """-d (--done) <pattern>\tAlways marks items maching"""
+                    """ <pattern> as done.\n"""
+                    """-D (--undone) <pattern>\tAlways marks items maching"""
+                    """ <pattern> as not done.\n"""
+                    """\nAdditional options:\n"""
+                    """  -h (--help)\t\tShows this screen."""
+                )
+            else:
+                raise UnrecognizedCommandError("td", arg)
 
-        :subparsers: Argparse subparser to attach to.
 
-        """
-        edit = subparsers.add_parser(
-            'e', aliases=['edit'],
-            help="edit existing item (also used for reparenting)"
-        )
-        edit.add_argument('index', help="index of the item to edit")
-        edit.add_argument('--parent', help="new parent index")
-        edit.add_argument('-n', '--name', help="new name")
-        edit.add_argument('-p', '--priority', type=int, help="new priority")
-        edit.add_argument('-c', '--comment', help="new comment")
-        edit.set_defaults(func=self.edit)
+class Arg(object):
+    """Main entry point.
 
-    def initRm(self, subparsers):
-        """Initializes r(m) cli arguments.
-
-        :subparsers: Argparse subparser to attach to.
-
-        """
-        rm = subparsers.add_parser(
-            'r', aliases=['rm'], help="remove existing item"
-        )
-        rm.add_argument('index', help="index of the item to remove")
-        rm.set_defaults(func=self.rm)
-
-    def initDone(self, subparsers):
-        """Initializes d(one) cli arguments.
-
-        :subparsers: Argparse subparser to attach to.
-
-        """
-        done = subparsers.add_parser(
-            'd', aliases=['done'], help="mark item as done"
-        )
-        done.add_argument('index', help="index of the item to mark")
-        done.set_defaults(func=self.done)
-
-    def initUndone(self, subparsers):
-        """Initialized D (undone) cli arguments.
-
-        :subparsers: Argparse subparser to attach to.
-
-        """
-        undone = subparsers.add_parser(
-            'D', aliases=['undone'], help='mark item as not done'
-        )
-        undone.add_argument('index', help="index of the item to unmark")
-        undone.set_defaults(func=self.undone)
-
-    def initOptions(self, subparsers):
-        """Initialized o(ptions) cli arguments.
-
-        :subparsers: Argparse subparser to attach to.
-
-        """
-        options = subparsers.add_parser(
-            'o', aliases=['options'], help="change options"
-        )
-        options.add_argument(
-            '-g', '--global', dest='glob', action="store_true",
-            help="Store specified options globally"
-        )
-        options.add_argument(
-            '-s', '--sort', nargs='?', const=True,
-            help="set option to sort the database"
-        )
-        options.add_argument(
-            '-p', '--purge', action='store_true',
-            help="set option to remove completed items"
-        )
-        options.add_argument(
-            '-d', '--done', nargs='?', const=True,
-            help="set option to mark all items as done"
-        )
-        options.add_argument(
-            '-D', '--undone', nargs='?', const=True,
-            help="set option to mark all items as not done"
-        )
-        options.set_defaults(func=self.options)
-
-
-class Arg(ParserMixin):
-    """Handles everything related to command line arguments parsing,
-    patterns decoding and calling appropriate view/model manipulation methods.
-
+    Handles patterns decoding and calling appropriate view/model manipulation
+    methods. Also takes care of cmd arguments parsing, using Parser class.
     """
 
     def __init__(self, model):
         """Creates new Arg instance.
 
-        Defines all necessary command line arguments, sub-parsers, etc.
-
         :model: Model instance.
 
         """
         self.model = model
-        self.arg = ArgumentParser(
-            description="A non-offensive, per project ToDo manager."
-        )
-        self.arg.add_argument(
-            '-v', '--version', action='version', version=__version__
-        )
-        subparsers = self.arg.add_subparsers(title="available commands")
-        self.initView(subparsers)
-        self.initModify(subparsers)
-        self.initAdd(subparsers)
-        self.initEdit(subparsers)
-        self.initRm(subparsers)
-        self.initDone(subparsers)
-        self.initUndone(subparsers)
-        self.initOptions(subparsers)
-        args = self.arg.parse_args()
-        args.func(args)
+        Parser(self, sys.argv).rock()
 
     @logs
     def _getPattern(self, ipattern, done=None):
@@ -345,21 +416,25 @@ class Arg(ParserMixin):
         :returns: Pattern for done|undone or None if neither were specified.
 
         """
-        if args.done:
-            return self._getPattern(args.done, True)
-        if args.undone:
-            return self._getPattern(args.undone, False)
+        done, undone = args
+        if done:
+            return self._getPattern(done, True)
+        if undone:
+            return self._getPattern(undone, False)
 
-    def view(self, args):
+    def view(self, sort=None, purge=False, done=None, undone=None):
         """Handles the 'v' command.
 
-        :args: Arguments supplied to the 'v' command.
+        :sort: Sort pattern.
+        :purge: Whether to purge items marked as 'done'.
+        :done: Done pattern.
+        :undone: Not done pattern.
 
         """
         View(self.model.modify(
-            sort=self._getPattern(args.sort),
-            purge=args.purge,
-            done=self._getDone(args)
+            sort=self._getPattern(sort),
+            purge=purge,
+            done=self._getDone((done, undone))
         ))
 
     def modify(self, args):
@@ -498,7 +573,4 @@ class Arg(ParserMixin):
 
 def run():
     model = Model()
-    if len(sys.argv) > 1:
-        Arg(model)
-    else:
-        View(model)
+    Arg(model)

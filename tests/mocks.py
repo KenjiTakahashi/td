@@ -51,3 +51,37 @@ class StdoutMock(object):
 
     def assertEqual(self, msg):
         assert msg == sys.stdout.getvalue()
+
+
+class ModelMock(object):
+    def exists(self, index):
+        return True
+
+
+class ArgMock(object):
+    def __init__(self):
+        self.model = ModelMock()
+
+    def view(self):
+        pass
+
+    def modify(self):
+        pass
+
+    def add(self):
+        pass
+
+    def edit(self):
+        pass
+
+    def rm(self):
+        pass
+
+    def done(self):
+        pass
+
+    def undone(self):
+        pass
+
+    def options(self):
+        pass

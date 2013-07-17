@@ -8,3 +8,4 @@ build/*
 .coverage
 *.egg-info/
 td_example
+tags

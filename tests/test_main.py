@@ -17,7 +17,7 @@
 
 
 from collections import deque
-from tests.mocks import HandlerMock, StdoutMock, ArgMock
+from tests.mocks import HandlerMock, StdoutMock, ArgMock, ModelMock
 from td.main import Arg, Parser
 
 
@@ -69,8 +69,8 @@ class TestParser_part(object):
 
     def test_no_arguments(self):
         parser = Parser("", ["td"])
-        parser._part("test", "", {}, "")
-        self.handler.assertLogged("test: Not enough arguments.")
+        parser._part("test", self.func1, {}, "", test=True)
+        assert self.out1 is True
 
     def test_missing_argument(self):
         parser = Parser("", ["td", "-t"])
@@ -266,3 +266,52 @@ class TestArg_getPattern(object):
     def test_empty_should_stay_empty(self):
         result = self.arg._getPattern(None)
         assert result is None
+
+
+class TestArg(object):
+    def setUp(self):
+        self.mock = StdoutMock()
+        self.model = ModelMock()
+        self.mock.resetArgv()
+
+    def test_view(self):
+        Arg(self.model)
+        assert self.model.modify_val is True
+
+    def test_modify(self):
+        self.mock.addArgs("m", "-s", "sp", "-p", "-d", "dp", "-D", "Dp")
+        Arg(self.model)
+        assert self.model.modifyInPlace_val is True
+
+    def test_add(self):
+        self.mock.addArgs("a", "1.1", "-n", "n", "-p", "1", "-c", "c")
+        Arg(self.model)
+        assert self.model.add_val is True
+
+    def test_edit(self):
+        self.mock.addArgs(
+            "e", "1.1", "--parent", "2.2",
+            "-n", "n", "-p", "1", "-c", "c"
+        )
+        Arg(self.model)
+        assert self.model.edit_val is True
+
+    def test_rm(self):
+        self.mock.addArgs("r", "1.1")
+        Arg(self.model)
+        assert self.model.rm_val is True
+
+    def test_done(self):
+        self.mock.addArgs("d", "1.1")
+        Arg(self.model)
+        assert self.model.done_val is True
+
+    def test_undone(self):
+        self.mock.addArgs("D", "1.1")
+        Arg(self.model)
+        assert self.model.undone_val is True
+
+    def test_options(self):
+        self.mock.addArgs("o", "-g", "-s", "sp", "-p", "-d", "dp", "-D", "Dp")
+        Arg(self.model)
+        assert self.model.options_val is True

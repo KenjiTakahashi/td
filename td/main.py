@@ -112,6 +112,8 @@ class Parser(object):
     def _part(self, name, func, args, help, **kwargs):
         """Parses arguments of a single command (e.g. 'v').
 
+        If :args: is empty, it assumes that command takes no further arguments.
+
         :name: Name of the command.
         :func: Arg method to execute.
         :args: Dictionary of CLI arguments pointed at Arg method arguments.
@@ -119,7 +121,7 @@ class Parser(object):
         :kwargs: Additional arguments for :func:.
 
         """
-        if not self.argv:
+        if not self.argv and args:
             raise NotEnoughArgumentsError(name)
         while self.argv:
             arg = self.argv.popleft()
@@ -278,7 +280,8 @@ class Parser(object):
                     """Index argument is required and has to point at"""
                     """ an existing item.\n"""
                     """\nAdditional options:\n"""
-                    """  -h (--help)\tShows this screen."""
+                    """  -h (--help)\tShows this screen.""",
+                    **args
                 )
             elif arg == "D" or arg == "undone":
                 args = dict()
@@ -286,17 +289,18 @@ class Parser(object):
                     raise NotEnoughArgumentsError("undone")
                 elif self.argv[0] not in ["-h", "--help"]:
                     args["index"] = self.argv.popleft()
-                self._part("done", self.arg.done, {
+                self._part("undone", self.arg.undone, {
                 },
                     """Usage: td D [-h (--help)] <index>\n\n"""
                     """Index argument is required and has to point at"""
                     """ an existing item.\n"""
                     """\nAdditional options:\n"""
-                    """  -h (--help)\tShows this screen."""
+                    """  -h (--help)\tShows this screen.""",
+                    **args
                 )
             elif arg == "o" or arg == "options":
                 self._part("options", self.arg.options, {
-                    "-g": ("global", False),
+                    "-g": ("glob", False), "--global": ("glob", False),
                     "-s": ("sort", True), "--sort": ("sort", True),
                     "-p": ("purge", False), "--purge": ("purge", False),
                     "-d": ("done", True), "--done": ("done", True),
@@ -304,8 +308,8 @@ class Parser(object):
                 },
                     """Usage: td o [-h (--help)] [command(s)]"""
                     """, where [command(s)] are any of:\n\n"""
-                    """-g\t\t\tApply specified options to all ToDo lists ("""
-                    """store in ~/.tdrc).\n"""
+                    """-g (--global)\t\tApply specified options to all"""
+                    """ ToDo lists (store in ~/.tdrc).\n"""
                     """-s (--sort) <pattern>\tAlways sorts using"""
                     """ <pattern>.\n"""
                     """-p (--purge)\t\tAlways removes items marked"""
@@ -409,14 +413,14 @@ class Arg(object):
             ipattern2.setdefault(k, []).append(v)
         return (ipattern1, ipattern2)
 
-    def _getDone(self, args):
+    def _getDone(self, done, undone):
         """Parses the done|undone state.
 
-        :args: Arguments passed to the command.
+        :done: Done marking pattern.
+        :undone: Not done marking pattern.
         :returns: Pattern for done|undone or None if neither were specified.
 
         """
-        done, undone = args
         if done:
             return self._getPattern(done, True)
         if undone:
@@ -434,22 +438,25 @@ class Arg(object):
         View(self.model.modify(
             sort=self._getPattern(sort),
             purge=purge,
-            done=self._getDone((done, undone))
+            done=self._getDone(done, undone)
         ))
 
-    def modify(self, args):
+    def modify(self, sort=None, purge=False, done=None, undone=None):
         """Handles the 'm' command.
 
-        :args: Arguments supplied to the 'm' command.
+        :sort: Sort pattern.
+        :purge: Whether to purge items marked as 'done'.
+        :done: Done pattern.
+        :undone: Not done pattern.
 
         """
         self.model.modifyInPlace(
-            sort=self._getPattern(args.sort),
-            purge=args.purge,
-            done=self._getDone(args)
+            sort=self._getPattern(sort),
+            purge=purge,
+            done=self._getDone(done, undone)
         )
 
-    def add(self, args):
+    def add(self, **args):
         """Handles the 'a' command.
 
         :args: Arguments supplied to the 'a' command.
@@ -459,59 +466,60 @@ class Arg(object):
         if kwargs:
             self.model.add(**kwargs)
 
-    def edit(self, args):
+    def edit(self, **args):
         """Handles the 'e' command.
 
         :args: Arguments supplied to the 'e' command.
 
         """
-        if self.model.exists(args.index):
+        if self.model.exists(args["index"]):
             values = dict(zip(
                 ['parent', 'name', 'priority', 'comment', 'done'],
-                self.model.get(args.index)
+                self.model.get(args["index"])
             ))
             kwargs = self.getKwargs(args, values)
             if kwargs:
-                self.model.edit(args.index, **kwargs)
+                self.model.edit(args["index"], **kwargs)
 
-    def rm(self, args):
+    def rm(self, index):
         """Handles the 'r' command.
 
-        :args: Arguments supplied to the 'r' command.
+        :index: Index of the item to remove.
 
         """
-        if self.model.exists(args.index):
-            self.model.remove(args.index)
+        if self.model.exists(index):
+            self.model.remove(index)
 
-    def done(self, args):
+    def done(self, index):
         """Handles the 'd' command.
 
-        :args: Arguments supplied to the 'd' command.
+        :index: Index of the item to mark as done.
 
         """
-        if self.model.exists(args.index):
-            self.model.edit(args.index, done=True)
+        if self.model.exists(index):
+            self.model.edit(index, done=True)
 
-    def undone(self, args):
+    def undone(self, index):
         """Handles the 'D' command.
 
-        :args: Arguments supplied to the 'D' command.
+        :index: Index of the item to mark as not done.
 
         """
-        if self.model.exists(args.index):
-            self.model.edit(args.index, done=False)
+        if self.model.exists(index):
+            self.model.edit(index, done=False)
 
-    def options(self, args):
+    def options(self, glob=False, **args):
         """Handles the 'o' command.
 
-        :args: Arguments supplied to the 'o' command.
+        :glob: Whether to store specified options globally.
+        :args: Arguments supplied to the 'o' command (excluding '-g').
 
         """
         self.model.setOptions(
-            glob=args.glob,
-            sort=self._getPattern(args.sort),
-            purge=args.purge,
-            done=self._getDone(args)
+            glob=glob,
+            sort=self._getPattern(args["sort"]),
+            purge=args["purge"],
+            done=self._getDone(args["done"], args["undone"])
         )
 
     def getKwargs(self, args, values={}):
@@ -519,18 +527,18 @@ class Arg(object):
 
         @note: Also displays error message when no item name is set.
 
-        :args: Arguments supplied in command line.
+        :args: Dictionary of arguments supplied in command line.
         :values: Default values dictionary, supplied for editing.
         :returns: A dictionary containing data gathered from stdin.
 
         """
-        name = args.name or self.get('name', values.get('name'))
+        name = args["name"] or self.get('name', values.get('name'))
         if name:
             kwargs = dict()
             kwargs['name'] = name
             for field in ['priority', 'comment', 'parent']:
                 value = values.get(field)
-                fvalue = getattr(args, field) or self.get(field, value)
+                fvalue = args.get(field) or self.get(field, value)
                 if fvalue is not None:
                     kwargs[field] = fvalue
             return kwargs

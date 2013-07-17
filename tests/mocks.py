@@ -46,16 +46,54 @@ class StdoutMock(object):
     def resetArgv(self):
         sys.argv = ['td']
 
-    def setArgv(self, *args):
-        sys.argv.extend(*args)
+    def addArgs(self, *args):
+        sys.argv.extend(args)
 
     def assertEqual(self, msg):
         assert msg == sys.stdout.getvalue()
 
 
 class ModelMock(object):
+    def __init__(self):
+        self.modify_val = False
+        self.modifyInPlace_val = False
+        self.add_val = False
+        self.edit_val = False
+        self.rm_val = False
+        self.done_val = False
+        self.undone_val = False
+        self.options_val = False
+
+    def get(self, index):
+        return [1, 1, 1, 1, 1]
+
     def exists(self, index):
         return True
+
+    def modify(self, sort, purge, done):
+        self.modify_val = True
+
+    def modifyInPlace(self, sort, purge, done):
+        self.modifyInPlace_val = True
+
+    def add(self, name, priority, comment, parent):
+        self.add_val = True
+
+    def edit(
+        self, index=None, name=None, priority=None,
+        comment=None, done=None, parent=None
+    ):
+        self.edit_val = True
+        if done is True:
+            self.done_val = True
+        elif done is False:
+            self.undone_val = True
+
+    def remove(self, index):
+        self.rm_val = True
+
+    def setOptions(self, glob, sort, purge, done):
+        self.options_val = True
 
 
 class ArgMock(object):

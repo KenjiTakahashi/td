@@ -13,3 +13,4 @@
 == 0.3:
 - Redone arguments parser.
 - Crafted nicer help messages.
+- Added [v --no-color] argument.

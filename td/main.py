@@ -68,9 +68,11 @@ class View(object):
         Displays the Model contents, basing on :opts:, and exits.
 
         :model: Model instance.
-        :opts: Additional options defining the View looks.
+        :opts: Options defining how the View looks.
 
         """
+        colors = not opts.get("nocolor")
+
         def _show(submodel, offset):
             numoffset = len(str(len(list(submodel)))) - 1
             for i, v in enumerate(submodel, start=1):
@@ -78,14 +80,20 @@ class View(object):
                 padding = " " * offset
                 if i < 10:
                     padding += " " * numoffset
-                print("{0}{1}{2}{3}{4}{5}{6}".format(
-                    View.RESET, padding, View.COLORS[priority],
-                    done and View.DIM or View.BRIGHT,
+                print("{}{}{}{}{}{}{}".format(
+                    colors and View.RESET or "",
+                    padding,
+                    colors and View.COLORS[priority] or "",
+                    colors and (done and View.DIM or View.BRIGHT) or "",
                     i, done and '-' or '.', name
                 ))
                 padding += " " * (len(str(i)) + 1)
                 if comment:
-                    print("{0}{1}({2})".format(padding, View.RESET, comment))
+                    print("{}{}({})".format(
+                        padding,
+                        colors and View.RESET or "",
+                        comment
+                    ))
                 _show(subitems, offset + 2 + numoffset)
         _show(model, 0)
 
@@ -167,6 +175,7 @@ class Parser(object):
                 print("td :: {}".format(__version__))
             elif arg == "v" or arg == "view":
                 self._part("view", self.arg.view, {
+                    "--no-color": ("nocolor", False),
                     "-s": ("sort", True), "--sort": ("sort", True),
                     "-p": ("purge", False), "--purge": ("purge", False),
                     "-d": ("done", True), "--done": ("done", True),
@@ -181,6 +190,7 @@ class Parser(object):
                     """ <pattern> as done.\n"""
                     """-D (--undone) <pattern>\tDisplays items matching"""
                     """ <pattern> as not done.\n"""
+                    """--no-color\t\tDo not add color codes to the output.\n"""
                     """\nAdditional options:\n"""
                     """  -h (--help)\t\tShows this screen."""
                 )
@@ -426,20 +436,21 @@ class Arg(object):
         if undone:
             return self._getPattern(undone, False)
 
-    def view(self, sort=None, purge=False, done=None, undone=None):
+    def view(self, sort=None, purge=False, done=None, undone=None, **kwargs):
         """Handles the 'v' command.
 
         :sort: Sort pattern.
         :purge: Whether to purge items marked as 'done'.
         :done: Done pattern.
         :undone: Not done pattern.
+        :kwargs: Additional arguments to pass to the View object.
 
         """
         View(self.model.modify(
             sort=self._getPattern(sort),
             purge=purge,
             done=self._getDone(done, undone)
-        ))
+        ), **kwargs)
 
     def modify(self, sort=None, purge=False, done=None, undone=None):
         """Handles the 'm' command.

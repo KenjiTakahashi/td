@@ -72,6 +72,11 @@ class TestParser_part(object):
         parser._part("test", self.func1, {}, "", test=True)
         assert self.out1 is True
 
+    def test_not_enough_arguments(self):
+        parser = Parser("", ["td"])
+        parser._part("test", "", {"-t": ("test", True)}, "")
+        self.handler.assertLogged("test: Not enough arguments.")
+
     def test_missing_argument(self):
         parser = Parser("", ["td", "-t"])
         parser._part("test", "", {"-t": ("test", True)}, "")

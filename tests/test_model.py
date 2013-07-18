@@ -81,7 +81,7 @@ class TestRemove(ModelTest):
         handler = HandlerMock()
         self.model.add("testname")
         self.model.remove("1.1")
-        handler.assertLogged('No item found at index: 1.1')
+        handler.assertLogged('No item found at index [1.1].')
 
 
 class TestEdit(ModelTest):

@@ -26,7 +26,7 @@ from td.logger import logs
 
 class NoItemError(Exception):
     def __init__(self, k):
-        self.message = "No item found at index: {}".format(k)
+        self.message = "No item found at index [{}].".format(k)
 
     def __str__(self):
         return self.message
@@ -358,20 +358,17 @@ class Model(UserList):
 
     @save
     @load
-    def setOptions(self, glob=False, *, sort=None, purge=False, done=None):
-        """Set option(s). Arguments like in Model.modify.
+    def setOptions(self, glob=False, **kwargs):
+        """Set option(s).
 
         :glob: If True, stores specified options globally.
+        :kwargs: Dictionary of options and values to set.
 
         """
         if glob:
-            self.globalOptions['sort'] = sort
-            self.globalOptions['purge'] = purge
-            self.globalOptions['done'] = done
+            self.globalOptions.update(kwargs)
         else:
-            self.options['sort'] = sort
-            self.options['purge'] = purge
-            self.options['done'] = done
+            self.options.update(kwargs)
 
     @load
     def __iter__(self):

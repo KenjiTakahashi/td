@@ -31,7 +31,7 @@ class TestParser_part(object):
     def tearDown(self):
         self.mock.undo()
 
-    def func1(self, test=None):
+    def func1(self, test=None, sort=None):
         self.out1 = test
 
     def func2(self, test1=None, test2=None):
@@ -86,6 +86,13 @@ class TestParser_part(object):
         parser = Parser("", ["td", "-y"])
         parser._part("test", "", {"-t": ("test", True)}, "")
         self.handler.assertLogged("test: Unrecognized argument [-y].")
+
+    def test_sort_with_no_arguments(self):
+        #If no arguments are supplied, it should use default.
+        #Applies to done/undone too.
+        parser = Parser("", ["td", "-s"])
+        parser._part("test", self.func1, {"-s": ("sort", True)}, "", test=True)
+        assert self.out1 is True
 
 
 class TestParserrock(object):
@@ -266,7 +273,7 @@ class TestArg_getPattern(object):
 
     def test_sort_all_levels(self):
         result = self.arg._getPattern(True)
-        assert result == ([(0, False)], {})
+        assert result == ([(0, True)], {})
 
     def test_sort_one_specific_level(self):
         result = self.arg._getPattern("1+")

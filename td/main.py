@@ -23,7 +23,7 @@ from td.model import Model
 from td.logger import logs
 
 
-__version__ = '0.2.1'
+__version__ = '0.3'
 
 
 class EException(Exception):
@@ -140,7 +140,10 @@ class Parser(object):
             except KeyError:
                 raise UnrecognizedArgumentError(name, arg)
             except IndexError:
-                raise NotEnoughArgumentsError(name)
+                valids = ["-s", "--sort", "-d", "--done", "-D", "--undone"]
+                if arg not in valids:
+                    raise NotEnoughArgumentsError(name)
+                kwargs[argname] = True
         func(**kwargs)
 
     @logs
@@ -445,7 +448,7 @@ class Arg(object):
         if ipattern is True:
             if done is not None:
                 return ([(None, None, done)], {})
-            return ([(0, False)], {})
+            return ([(0, True)], {})
 
         def _getReverse(pm):
             return pm == '+'

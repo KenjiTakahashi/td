@@ -40,7 +40,7 @@ $ td
 #### add
 Typing
 ```sh
-$ td a(dd) [<parent_index>]
+$ td a(dd) [<parent index>]
 ```
 will start an interactive item adding session.
 
@@ -48,8 +48,8 @@ Optional *parent_index* parameter specifies item, under which the new one will b
 
 Instead of using interactive session, one can also specify them in command line, like below.
 ```sh
-$ td a(dd) [<parent_index>] --<field_name> <field_value>
-$ td a(dd) [<parent_index>] -<field_name's_first_letter> <field_value>
+$ td a(dd) [<parent index>] --<field name> <field value>
+$ td a(dd) [<parent index>] -<first letter of the field name> <field value>
 ```
 
 #### edit
@@ -61,12 +61,12 @@ where *index* is an item's index, will start an interactive item editing session
 
 Similarly to **a(dd)**, one can also specify new values in command line.
 ```sh
-$ td e(dit) <index> --<field_name> <field_value>
-$ td e(dit) <index> -<field_name's_first_letter> <field_value>
+$ td e(dit) <index> --<field name> <field value>
+$ td e(dit) <index> -<first letter of the field name> <field value>
 ```
 One special cause here is reparenting, done like below.
 ```sh
-$ td e(dit) <index> --parent <parent_index>
+$ td e(dit) <index> --parent <parent index>
 ```
 
 #### remove
@@ -93,6 +93,8 @@ Performs a one time modification of the list and saves it to disk.
 
 **sort**
 
+Used to sort items on the list.
+
 General syntax is
 ```sh
 $ td (v|m|o) -s [+|-]{,}[[<level>]{:}[<field_name>](+|-)]
@@ -100,32 +102,32 @@ $ td (v|m|o) --sort [+|-]{,}[[<level>]{:}[<field_name>](+|-)]
 ```
 but it looks cryptic, so lets split it into some more specific use cases.
 
-To sort everything asceding by name, type
+To sort everything ascending by name, type
 ```sh
 $ td (v|m|o) -s
 $ td (v|m|o) -s +
 ```
-To sort everything desceding by name, type
+To sort everything descending by name, type
 ```sh
 $ td (v|m|o) -s -
 ```
-To sort specific level by name, type (as before, + goes for asceding and - for desceding)
+To sort specific level by name, type (as before, + goes for ascending and - for descending)
 ```sh
 $ td (v|m|o) -s <level>(+|-)
 ```
 To sort everything by a field other than name, type
 ```sh
-$ td (v|m|o) -s <field_name>(+|-)
+$ td (v|m|o) -s <field name>(+|-)
 ```
 To sort specific level by a field other than name, type
 ```sh
-$ td (v|m|o) -s <level>:<field_name>(+|-)
+$ td (v|m|o) -s <level>:<field name>(+|-)
 ```
 And to specify muliple rules, use a comma (`,`). For example this
 ```sh
 $ td (v|m|o) -s +,1-,2:priority+
 ```
-will sort items at the second level asceding by priority, item at the first level desceding by name, and all other levels asceding by name.
+will sort items at the second level ascending by priority, item at the first level descending by name, and all other levels ascending by name.
 
 Note that to sort by multiple conditions, just supply them one by one and they'll be applied in order of appearance.
 
@@ -140,16 +142,16 @@ will remove all completed items.
 
 **done/undone**
 
-This command is used to batch mark items as done or not.
+Used to batch mark items as done or not.
 
 General syntax is
 ```sh
-$ td (v|m|o) -d [[<level>]{:}[[<field_name>=]<regexp>]]
-$ td (v|m|o) --done [[<level>]{:}[[<field_name>=]<regexp>]]
+$ td (v|m|o) -d [[<level>]{:}[[<field name>=]<regexp>]]
+$ td (v|m|o) --done [[<level>]{:}[[<field name>=]<regexp>]]
 ```
 ```sh
-$ td (v|m|o) -D [[<level>]{:}[[<field_name>=]<regexp>]]
-$ td (v|m|o) --undone [[<level>]{:}[[<field_name>=]<regexp>]]
+$ td (v|m|o) -D [[<level>]{:}[[<field name>=]<regexp>]]
+$ td (v|m|o) --undone [[<level>]{:}[[<field name>=]<regexp>]]
 ```
 As with **sort**, we'll split it into use cases.
 
@@ -167,7 +169,7 @@ $ td (v|m|o) -(d|D) <regexp>
 ```
 To mark items matching regexp at *specific* field and *any* level, type
 ```sh
-$ td (v|m|o) -(d|D) <field_name>=<regexp>
+$ td (v|m|o) -(d|D) <field name>=<regexp>
 ```
 To mark items matching regexp at *any* field and *specific* level, type
 ```sh
@@ -175,14 +177,14 @@ $ td (v|m|o) -(d|D) <level>:<regexp>
 ```
 To mark items matching regexp at *specific* field and level, type
 ```sh
-$ td (v|m|o) -(d|D) <level>:<field_name>=<regexp>
+$ td (v|m|o) -(d|D) <level>:<field name>=<regexp>
 ```
 Of course, these rules can also be chained using comma (`,`).
 
 #### view
 Affects how the list is displayed on the screen. It does not modify the list physically and only takes effect for one run, all settings are then gone.
 
-Shares the interface of `modify` command, with following additions:
+Shares the interface of `modify` command, with following additions.
 
 **nocolor**
 
@@ -195,7 +197,7 @@ $ td v --no-color
 #### options
 Describes persistent options, which will be applied every next time **td** is run.
 
-Shares the interface of `modify` command, with following additions:
+Shares the interface of `modify` command, with following additions.
 
 **global**
 Stores options globally (in `~/.tdrc`), which means that they will be applied to all lists.

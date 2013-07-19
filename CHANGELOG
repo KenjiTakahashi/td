@@ -10,7 +10,7 @@
 == 0.2.1 (12.04.2013):
 - Fixed reading specifing level sorting conditions from .td/.tdrc files.
 
-== 0.3:
+== 0.3 (20.07.2013):
 - Redone arguments parser.
 - Crafted nicer help messages.
 - Added [v --no-color] argument.

@@ -99,9 +99,7 @@ class View(object):
 
 
 class Parser(object):
-    """Parses command line arguments and runs appropriate Arg methods.
-
-    """
+    """Parses command line arguments and runs appropriate Arg methods."""
 
     def __init__(self, arg, argv):
         """Creates new Parser instance.
@@ -335,11 +333,92 @@ class Parser(object):
                 raise UnrecognizedCommandError("td", arg)
 
 
+class Get(object):
+    """Handles keyboard input."""
+
+    TYPES = {
+        "name": "any text (required)",
+        "comment": "any text (default: <empty>)",
+        "priority": "number or name (default: 3 or 'normal')",
+        "parent": "valid index (default: <top level>)"
+    }
+    PRIORITIES = {
+        "lowest": "1",
+        "low": "2",
+        "normal": "3",
+        "high": "4",
+        "highest": "5"
+    }
+
+    def __init__(self):
+        """Creates new Get instance.
+
+        Also sets readline hook.
+
+        """
+        self.value = None
+        readline.set_startup_hook(lambda: readline.insert_text(
+            self.value is not None and str(self.value) or ""
+        ))
+
+    def input(self, field):
+        """Gets user input for given field.
+
+        Can be interrupted by ^C.
+
+        :field: Field name.
+        :returns: User input.
+
+        """
+        try:
+            return input("{}[{}]> ".format(field, Get.TYPES[field]))
+        except KeyboardInterrupt:
+            print()
+            exit(0)
+
+    def get(self, field, value=None):
+        """Gets user input for given field and checks if it is valid.
+
+        If input is invalid, it will ask the user to enter it again.
+        Defaults values to empty or :value:.
+
+        It does not check validity of parent index. It can only be tested
+        further down the road, so for now accept anything.
+
+        :field: Field name.
+        :value: Default value to use for field.
+        :returns: User input.
+
+        """
+        self.value = value
+        val = self.input(field)
+        if field == 'name':
+            while True:
+                if val != '':
+                    break
+                print("Name cannot be empty.")
+                val = self.input(field)
+        elif field == 'priority':
+            if val == '':  # Use default priority
+                return None
+            while True:
+                if val in Get.PRIORITIES.values():
+                    break
+                c, val = val, Get.PRIORITIES.get(val)
+                if val:
+                    break
+                print("Unrecognized priority number or name [{}].".format(c))
+                val = self.input(field)
+            val = int(val)
+        return val
+
+
 class Arg(object):
     """Main entry point.
 
     Handles patterns decoding and calling appropriate view/model manipulation
     methods. Also takes care of cmd arguments parsing, using Parser class.
+
     """
 
     def __init__(self, model):
@@ -533,61 +612,21 @@ class Arg(object):
             done=self._getDone(args["done"], args["undone"])
         )
 
-    def getKwargs(self, args, values={}):
-        """Gets necessary data from stdin.
-
-        @note: Also displays error message when no item name is set.
+    def getKwargs(self, args, values={}, get=Get()):
+        """Gets necessary data from user input.
 
         :args: Dictionary of arguments supplied in command line.
         :values: Default values dictionary, supplied for editing.
-        :returns: A dictionary containing data gathered from stdin.
+        :get: Object used to get values from user input.
+        :returns: A dictionary containing data gathered from user input.
 
         """
-        name = args["name"] or self.get('name', values.get('name'))
-        if name:
-            kwargs = dict()
-            kwargs['name'] = name
-            for field in ['priority', 'comment', 'parent']:
-                value = values.get(field)
-                fvalue = args.get(field) or self.get(field, value)
-                if fvalue is not None:
-                    kwargs[field] = fvalue
-            return kwargs
-        else:
-            print("Item must have a name!")
-            return None
-
-    def get(self, field, value=None):
-        """Gets :field: value from stdin.
-
-        :field: Field's name.
-        :value: Default value for editing.
-        :returns: Value got from stdin.
-
-        """
-        readline.set_startup_hook(lambda: readline.insert_text(
-            value is not None and str(value) or ""
-        ))
-        try:
-            value = input("{0}> ".format(field))
-        except KeyboardInterrupt:
-            print()
-            exit(0)
-        readline.set_startup_hook()
-        if field == 'priority':
-            try:
-                value = int(value)
-            except ValueError:
-                if value == '':
-                    return None
-                print("Invalid priority value!")
-                exit(0)
-            else:
-                if value not in [1, 2, 3, 4, 5]:
-                    print("Invalid priority value!")
-                    exit(0)
-                return value
-        return value
+        kwargs = dict()
+        for field in ['name', 'priority', 'comment', 'parent']:
+            fvalue = args.get(field) or get.get(field, values.get(field))
+            if fvalue is not None:
+                kwargs[field] = fvalue
+        return kwargs
 
 
 def run():

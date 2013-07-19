@@ -14,3 +14,4 @@
 - Redone arguments parser.
 - Crafted nicer help messages.
 - Added [v --no-color] argument.
+- Generally nicer interactive sessions on add/edit.

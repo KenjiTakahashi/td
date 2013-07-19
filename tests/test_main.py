@@ -17,8 +17,8 @@
 
 
 from collections import deque
-from tests.mocks import HandlerMock, StdoutMock, ArgMock, ModelMock
-from td.main import Arg, Parser
+from tests.mocks import HandlerMock, StdoutMock, ArgMock, ModelMock, GetMock
+from td.main import Arg, Parser, Get
 
 
 class TestParser_part(object):
@@ -183,6 +183,82 @@ class TestParserrock(object):
         self.handler.assertLogged("td: Unrecognized command [dang].")
 
 
+class TestGet(object):
+    def setUp(self):
+        self.mock = StdoutMock()
+        self.get = Get()
+        Get.input = self.func
+        self.i = True
+        self.v = ""
+
+    def tearDown(self):
+        self.mock.undo()
+
+    def func(self, f):
+        if self.i:
+            self.i = False
+            return self.v
+        return "1"
+
+    def test_correct_name(self):
+        self.v = "test"
+        result = self.get.get("name")
+        assert result == "test"
+
+    def test_empty_name(self):
+        self.get.get("name")
+        self.mock.assertEqual("Name cannot be empty.\n")
+
+    def test_correct_comment(self):
+        self.v = "test"
+        result = self.get.get("comment")
+        assert result == "test"
+
+    def test_parent(self):
+        #Anything is correct here. See docstring in the code.
+        self.v = "1.1"
+        result = self.get.get("parent")
+        assert result == "1.1"
+
+    def test_correct_priority_names(self):
+        for n, ne in enumerate(["lowest", "low", "normal", "high", "highest"]):
+            self.i = True
+            self.v = ne
+            result = self.get.get("priority")
+            assert result == n + 1
+
+    def test_incorrect_priority_name(self):
+        self.v = "the highest"
+        self.get.get("priority")
+        self.mock.assertEqual(
+            "Unrecognized priority number or name [the highest].\n"
+        )
+
+    def test_correct_priority_numbers(self):
+        for n in range(1, 6):
+            self.i = True
+            self.v = str(n)
+            result = self.get.get("priority")
+            assert result == n
+
+    def t_incorrect_priority_numbers(self, n):
+        self.v = str(n)
+        self.get.get("priority")
+        self.mock.assertEqual(
+            "Unrecognized priority number or name [{}].\n".format(n)
+        )
+
+    def test_incorrect_priority_number0(self):
+        self.t_incorrect_priority_numbers(0)
+
+    def test_incorrect_priority_number6(self):
+        self.t_incorrect_priority_numbers(6)
+
+    def test_empty_priority(self):
+        result = self.get.get("priority")
+        assert result is None
+
+
 class TestArg_getPattern(object):
     def setUp(self):
         self.arg = Arg.__new__(Arg)  # Don't do this at home
@@ -279,6 +355,9 @@ class TestArg(object):
         self.model = ModelMock()
         self.mock.resetArgv()
 
+    def tearDown(self):
+        self.mock.undo()
+
     def test_view(self):
         Arg(self.model)
         assert self.model.modify_val is True
@@ -320,3 +399,13 @@ class TestArg(object):
         self.mock.addArgs("o", "-g", "-s", "sp", "-p", "-d", "dp", "-D", "Dp")
         Arg(self.model)
         assert self.model.options_val is True
+
+    def test_getKwargs(self):
+        arg = Arg.__new__(Arg)
+        result = arg.getKwargs({"priority": 3}, {"comment": "test"}, GetMock())
+        assert result == {
+            "name": "mock",
+            "comment": "test",
+            "priority": 3,
+            "parent": "mock"
+        }

@@ -123,3 +123,8 @@ class ArgMock(object):
 
     def options(self):
         pass
+
+
+class GetMock(object):
+    def get(self, field, value):
+        return value if value is not None else "mock"

@@ -127,8 +127,6 @@ class Parser(object):
         :kwargs: Additional arguments for :func:.
 
         """
-        if not self.argv and args:
-            raise NotEnoughArgumentsError(name)
         while self.argv:
             arg = self.argv.popleft()
             if arg == "-h" or arg == "--help":
@@ -238,10 +236,10 @@ class Parser(object):
                     **args
                 )
             elif arg == "e" or arg == "edit":
-                args = dict()
                 if not self.argv:
                     raise NotEnoughArgumentsError("edit")
-                elif self.argv[0] not in ["-h", "--help"]:
+                args = dict()
+                if self.argv[0] not in ["-h", "--help"]:
                     args["index"] = self.argv.popleft()
                 self._part("edit", self.arg.edit, {
                     "--parent": ("parent", True),
@@ -341,9 +339,9 @@ class Get(object):
 
     TYPES = {
         "name": "any text (required)",
-        "comment": "any text (default: <empty>)",
-        "priority": "number or name (default: 3 or 'normal')",
-        "parent": "valid index (default: <top level>)"
+        "comment": "any text (<empty>)",
+        "priority": "no/name (3/normal)",
+        "parent": "index (<top level>)"
     }
     PRIORITIES = {
         "lowest": "1",

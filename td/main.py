@@ -203,7 +203,7 @@ class Parser(object):
                     """, where [command(s)] are any of:\n\n"""
                     """-s (--sort) <pattern>\tSorts database using"""
                     """ <pattern>.\n"""
-                    """-p (--purge)\t\tRemoved items marked as done.\n"""
+                    """-p (--purge)\t\tRemoves items marked as done.\n"""
                     """-d (--done) <pattern>\tMarks items matching"""
                     """ <pattern> as done.\n"""
                     """-D (--undone) <pattern>\tMarks items matching"""

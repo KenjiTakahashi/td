@@ -14,7 +14,7 @@ Oh, and it will automagically pick up your existing [devtodo][devtodo] lists!
 ![screenshot](http://dl.dropbox.com/u/20714377/td.png)
 
 ## requirements
-* python >= 3.2
+* python3
 * distribute (for setup)
 * nosetests (for test-suite)
 
@@ -30,11 +30,13 @@ $ python setup.py install
 ```
 
 ## usage
+
 #### show
 To show your complete ToDo list, just run **td** without any parameters.
 ```sh
 $ td
 ```
+
 #### add
 Typing
 ```sh
@@ -49,6 +51,7 @@ Instead of using interactive session, one can also specify them in command line,
 $ td a(dd) [<parent_index>] --<field_name> <field_value>
 $ td a(dd) [<parent_index>] -<field_name's_first_letter> <field_value>
 ```
+
 #### edit
 Typing
 ```sh
@@ -65,12 +68,14 @@ One special cause here is reparenting, done like below.
 ```sh
 $ td e(dit) <index> --parent <parent_index>
 ```
+
 #### remove
 Typing
 ```sh
 $ td r(emove) <index>
 ```
 will remove item under *index*.
+
 #### done/undone
 Typing
 ```sh
@@ -82,12 +87,9 @@ $ td D <index>
 $ td undone <index>
 ```
 will mark it as not done.
-#### view/modify/options
-All view, modify and options commands have exactly the same interface, but:
 
-* v(iew) is temporary, which means that changes affect only one session and are then gone,
-* m(odify) is permanent, which means that the changes made are saved to disk,
-* o(ptions) sets persistent modifiers, which will be applied on every future change. Also has a `-g` switch, which stores options globally (in `~/.tdrc`). They are then used if there are no local options.
+#### modify
+Performs a one time modification of the list and saves it to disk.
 
 **sort**
 
@@ -176,6 +178,34 @@ To mark items matching regexp at *specific* field and level, type
 $ td (v|m|o) -(d|D) <level>:<field_name>=<regexp>
 ```
 Of course, these rules can also be chained using comma (`,`).
+
+#### view
+Affects how the list is displayed on the screen. It does not modify the list physically and only takes effect for one run, all settings are then gone.
+
+Shares the interface of `modify` command, with following additions:
+
+**nocolor**
+
+Disables any possible color codes, i.e. prints pure textual data. Might be useful for storing and/or reusing the output.
+
+```sh
+$ td v --no-color
+```
+
+#### options
+Describes persistent options, which will be applied every next time **td** is run.
+
+Shares the interface of `modify` command, with following additions:
+
+**global**
+Stores options globally (in `~/.tdrc`), which means that they will be applied to all lists.
+
+**Note:** Local options take precedence over global ones.
+
+```sh
+$ td o -g <other options>
+$ td o --global <other options>
+```
 
 [devtodo]: http://swapoff.org/devtodo1.html
 [pypi]: https://pypi.python.org/pypi/td

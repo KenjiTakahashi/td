@@ -92,7 +92,7 @@ class ModelMock(object):
     def remove(self, index):
         self.rm_val = True
 
-    def setOptions(self, glob, sort, purge, done):
+    def setOptions(self, glob, **kwargs):
         self.options_val = True
 
 

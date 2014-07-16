@@ -606,12 +606,18 @@ class Arg(object):
         :args: Arguments supplied to the 'o' command (excluding '-g').
 
         """
-        self.model.setOptions(
-            glob=glob,
-            sort=self._getPattern(args["sort"]),
-            purge=args["purge"],
-            done=self._getDone(args["done"], args["undone"])
-        )
+        kwargs = {}
+        for argname, argarg in args.items():
+            if argname == "sort":
+                argarg = self._getPattern(argarg)
+            if argname not in ["done", "undone"]:
+                kwargs[argname] = argarg
+        if "done" in args or "undone" in args:
+            kwargs["done"] = self._getDone(
+                args.get("done"), args.get("undone")
+            )
+
+        self.model.setOptions(glob=glob, **kwargs)
 
     def getKwargs(self, args, values={}, get=Get()):
         """Gets necessary data from user input.

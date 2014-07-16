@@ -16,3 +16,6 @@
 - Added [v --no-color] argument.
 - Generally nicer interactive sessions on add/edit.
 - Fixed [td (v|m|o) -s] doing descending sort, instead of ascending.
+
+== 0.4:
+- Fixed options saving for some arguments configurations.

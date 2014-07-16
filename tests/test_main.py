@@ -402,6 +402,26 @@ class TestArg(object):
         Arg(self.model)
         assert self.model.options_val is True
 
+    def test_options_sort(self):
+        self.mock.addArgs("o", "-s")
+        Arg(self.model)
+        assert self.model.options_val is True
+
+    def test_options_purge(self):
+        self.mock.addArgs("o", "-p")
+        Arg(self.model)
+        assert self.model.options_val is True
+
+    def test_options_done(self):
+        self.mock.addArgs("o", "-d")
+        Arg(self.model)
+        assert self.model.options_val is True
+
+    def test_options_undone(self):
+        self.mock.addArgs("o", "-D")
+        Arg(self.model)
+        assert self.model.options_val is True
+
     def test_getKwargs(self):
         arg = Arg.__new__(Arg)
         result = arg.getKwargs({"priority": 3}, {"comment": "test"}, GetMock())

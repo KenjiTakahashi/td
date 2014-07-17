@@ -11,7 +11,7 @@ Heavily inspired by [devtodo][devtodo], but with some nasty features, like:
 Oh, and it will automagically pick up your existing [devtodo][devtodo] lists!
 
 ## screenshot
-![screenshot](http://dl.dropbox.com/u/20714377/td.png)
+![screenshot](https://copy.com/GYCQMKw3CF8h)
 
 ## requirements
 * python3

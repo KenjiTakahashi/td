@@ -446,10 +446,11 @@ class Arg(object):
         if ipattern is True:
             if done is not None:
                 return ([(None, None, done)], {})
-            return ([(0, True)], {})
+            # REMEMBER: This False is for sort reverse!
+            return ([(0, False)], {})
 
         def _getReverse(pm):
-            return pm == '+'
+            return pm == '-'
 
         def _getIndex(k):
             try:

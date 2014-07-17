@@ -268,43 +268,43 @@ class TestArg_getPattern(object):
 
     def test_sort_all_levels(self):
         result = self.arg._getPattern(True)
-        assert result == ([(0, True)], {})
+        assert result == ([(0, False)], {})
 
     def test_sort_one_specific_level(self):
         result = self.arg._getPattern("1+")
-        assert result == ([], {1: [(0, True)]})
+        assert result == ([], {1: [(0, False)]})
 
     def test_sort_two_specific_levels(self):
         result = self.arg._getPattern("1+,2-")
-        assert result == ([], {1: [(0, True)], 2: [(0, False)]})
+        assert result == ([], {1: [(0, False)], 2: [(0, True)]})
 
     def test_sort_all_levels_and_specific_level(self):
         result = self.arg._getPattern("+,1+")
-        assert result == ([(0, True)], {1: [(0, True)]})
+        assert result == ([(0, False)], {1: [(0, False)]})
 
     def test_sort_all_levels_by_priority(self):
         result = self.arg._getPattern("priority+")
-        assert result == ([(1, True)], {})
+        assert result == ([(1, False)], {})
 
     def test_sort_all_levels_by_name_and_priority(self):
         result = self.arg._getPattern("-,priority+")
-        assert result == ([(0, False), (1, True)], {})
+        assert result == ([(0, True), (1, False)], {})
 
     def test_sort_all_levels_by_state_and_priority(self):
         result = self.arg._getPattern("state-,priority+")
-        assert result == ([(3, False), (1, True)], {})
+        assert result == ([(3, True), (1, False)], {})
 
     def test_sort_specific_level_by_priority(self):
         result = self.arg._getPattern("1:priority+")
-        assert result == ([], {1: [(1, True)]})
+        assert result == ([], {1: [(1, False)]})
 
     def test_sort_specific_level_by_name_and_priority(self):
         result = self.arg._getPattern("1-,1:priority+")
-        assert result == ([], {1: [(0, False), (1, True)]})
+        assert result == ([], {1: [(0, True), (1, False)]})
 
     def test_sort_specific_level_by_state_and_priority(self):
         result = self.arg._getPattern("1:state-,1:priority+")
-        assert result == ([], {1: [(3, False), (1, True)]})
+        assert result == ([], {1: [(3, True), (1, False)]})
 
     def test_done_all(self):
         result = self.arg._getPattern(True, done=True)

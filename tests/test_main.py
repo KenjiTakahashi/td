@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # This is a part of td @ http://github.com/KenjiTakahashi/td
-# Karol "Kenji Takahashi" Woźniak © 2012 - 2013
+# Karol "Kenji Takahashi" Woźniak © 2012 - 2014
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -53,7 +53,7 @@ class TestParser_part(object):
         assert self.out1 is True
 
     def test_two_arguments(self):
-        #It should break by induction further on.
+        # It should break by induction further on.
         parser = Parser("", ["td", "-t1", "value1", "-t2", "value2"])
         parser._part("test", self.func2, {
             "-t1": ("test1", True), "-t2": ("test2", True)
@@ -83,8 +83,8 @@ class TestParser_part(object):
         self.handler.assertLogged("test: Unrecognized argument [-y].")
 
     def test_sort_with_no_arguments(self):
-        #If no arguments are supplied, it should use default.
-        #Applies to done/undone too.
+        # If no arguments are supplied, it should use default.
+        # Applies to done/undone too.
         parser = Parser("", ["td", "-s"])
         parser._part("test", self.func1, {"-s": ("sort", True)}, "", test=True)
         assert self.out1 is True
@@ -177,7 +177,7 @@ class TestParserrock(object):
         self.assert_part("options")
 
     def test_add_parent(self):
-        #It deserves a separate test
+        # It deserves a separate test
         self.assert_part("a", "1.1")
 
     def test_wrong_command(self):
@@ -217,7 +217,7 @@ class TestGet(object):
         assert result == "test"
 
     def test_parent(self):
-        #Anything is correct here. See docstring in the code.
+        # Anything is correct here. See docstring in the code.
         self.v = "1.1"
         result = self.get.get("parent")
         assert result == "1.1"

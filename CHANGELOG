@@ -20,3 +20,4 @@
 == 0.4:
 - Fixed options saving for some arguments configurations.
 - Fixed ascending/descending getting mangled (properly, I hope).
+- Even a bit nicer interactive sessions.

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # This is a part of td @ http://github.com/KenjiTakahashi/td
-# Karol "Kenji Takahashi" Woźniak © 2012 - 2013
+# Karol "Kenji Takahashi" Woźniak © 2012 - 2014
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -350,6 +350,7 @@ class Get(object):
         "high": "4",
         "highest": "5"
     }
+    _LEN = 27
 
     def __init__(self):
         """Creates new Get instance.
@@ -365,14 +366,17 @@ class Get(object):
     def input(self, field):
         """Gets user input for given field.
 
-        Can be interrupted by ^C.
+        Can be interrupted with ^C.
 
         :field: Field name.
         :returns: User input.
 
         """
         try:
-            return input("{}[{}]> ".format(field, Get.TYPES[field]))
+            desc = Get.TYPES[field]
+            return input("{}|{}[{}]> ".format(
+                field, "-" * (Get._LEN - len(field) - len(desc)), desc
+            ))
         except KeyboardInterrupt:
             print()
             exit(0)

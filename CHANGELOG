@@ -17,7 +17,7 @@
 - Generally nicer interactive sessions on add/edit.
 - Fixed [td (v|m|o) -s] doing descending sort, instead of ascending.
 
-== 0.4:
+== 0.4 (19.07.2014):
 - Fixed options saving for some arguments configurations.
 - Fixed ascending/descending getting mangled (properly, I hope).
 - Even a bit nicer interactive sessions.

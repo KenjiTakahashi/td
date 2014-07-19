@@ -23,7 +23,7 @@ from td.model import Model
 from td.logger import logs
 
 
-__version__ = '0.3'
+__version__ = '0.4'
 
 
 class EException(Exception):

@@ -3,10 +3,12 @@ python:
   - "3.2"
   - "3.3"
   - "3.4"
+  - "3.5"
+  - "3.6"
 install:
   - pip install coverage
   - pip install coveralls
-  - pip install . --use-mirrors
+  - pip install .
 script:
   - coverage run --source=td setup.py -q nosetests
   - coverage report -m
